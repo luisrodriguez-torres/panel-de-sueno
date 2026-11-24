@@ -2,120 +2,161 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Sueño" />
-  <meta name="theme-color" content="#0b0f1a" />
+  <meta name="theme-color" content="#090d16" />
   <title>Panel de Sueño</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #0b0f1a;
-      --bg-card: #121829;
-      --bg-card-2: #182038;
+      --bg: #090d16;
+      --bg-card: #111827;
+      --bg-card-2: #172033;
       --border: rgba(148, 163, 184, 0.14);
+      --border-strong: rgba(148, 163, 184, 0.24);
       --text: #f1f5f9;
       --muted: #94a3b8;
+      --dim: #64748b;
+
+      /* Paleta coherente */
       --cyan: #22d3ee;
       --blue: #3b82f6;
       --purple: #a855f7;
       --magenta: #ec4899;
       --green: #10b981;
       --amber: #f59e0b;
-      --red: #ef4444;
+      --red: #f43f5e;
       --radius: 16px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 45%),
-                  radial-gradient(circle at top left, rgba(168,85,247,0.10), transparent 40%),
-                  var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: env(safe-area-inset-top, 12px) 14px calc(24px + env(safe-area-inset-bottom, 0px));
-      line-height: 1.4;
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .container { max-width: 1040px; margin: 0 auto; }
+    html, body {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
 
+    body {
+      background:
+        radial-gradient(circle at 85% 0%, rgba(59, 130, 246, 0.13), transparent 42%),
+        radial-gradient(circle at 12% 4%, rgba(168, 85, 247, 0.11), transparent 38%),
+        var(--bg);
+      min-height: 100vh;
+      padding: calc(env(safe-area-inset-top, 10px) + 8px) 12px calc(28px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1020px;
+      margin: 0 auto;
+    }
+
+    /* Header */
     header {
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 12px 0 16px;
+      gap: 10px;
+      padding: 4px 2px 14px;
+    }
+
+    .title-wrap {
+      min-width: 0;
     }
 
     .title-wrap h1 {
-      font-size: 1.45rem;
+      font-size: clamp(1.3rem, 4.5vw, 1.6rem);
       font-weight: 700;
-      letter-spacing: -0.02em;
-      background: linear-gradient(90deg, #fff, #93c5fd, #c084fc);
+      letter-spacing: -0.025em;
+      background: linear-gradient(90deg, #f8fafc 0%, #7dd3fc 55%, #c084fc 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sync-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-      font-size: 0.78rem;
+      gap: 7px;
+      margin-top: 3px;
+      font-size: 0.74rem;
       color: var(--muted);
     }
 
     .dot {
-      width: 8px; height: 8px; border-radius: 50%;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
       background: var(--amber);
       box-shadow: 0 0 8px var(--amber);
-      display: inline-block;
     }
     .dot.ok { background: var(--green); box-shadow: 0 0 8px var(--green); }
     .dot.err { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
     .btn-refresh {
+      flex-shrink: 0;
       background: var(--bg-card-2);
       color: var(--cyan);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 6px 11px;
+      border: 1px solid var(--border-strong);
+      border-radius: 11px;
+      padding: 8px 12px;
       font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease;
     }
-    .btn-refresh:active { transform: scale(0.96); }
+    .btn-refresh:active { transform: scale(0.95); }
 
+    /* Controls */
     .controls {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 10px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 12px;
-      margin-bottom: 14px;
-      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .controls-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       justify-content: space-between;
+      align-items: center;
     }
 
     .control-group {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     .control-label {
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-right: 4px;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      margin-right: 3px;
+      font-weight: 600;
     }
 
     .pill {
@@ -123,8 +164,8 @@
       color: var(--muted);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 0.8rem;
+      padding: 6px 11px;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -133,44 +174,59 @@
       background: linear-gradient(135deg, var(--blue), var(--purple));
       color: #fff;
       border-color: transparent;
-      box-shadow: 0 2px 12px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
     }
 
-    .range-sliders {
-      width: 100%;
+    .range-wrap {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-top: 6px;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 8px;
       border-top: 1px solid var(--border);
-      font-size: 0.78rem;
+    }
+
+    .range-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
       color: var(--muted);
     }
-    .range-sliders input[type="range"] {
-      flex: 1;
-      accent-color: var(--cyan);
-    }
+
     .range-text {
-      min-width: 130px;
-      text-align: center;
       color: var(--text);
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
 
+    .range-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .range-inputs input[type="range"] {
+      width: 100%;
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
+
+    /* Sticky Tabs */
     .tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      background: var(--bg-card);
+      gap: 5px;
+      background: rgba(17, 24, 39, 0.9);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 5px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       position: sticky;
-      top: 6px;
-      z-index: 20;
-      backdrop-filter: blur(12px);
+      top: calc(env(safe-area-inset-top, 4px) + 4px);
+      z-index: 30;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
 
     .tab-btn {
@@ -178,107 +234,181 @@
       color: var(--muted);
       border: none;
       border-radius: 10px;
-      padding: 9px 6px;
-      font-size: 0.86rem;
+      padding: 9px 4px;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
     }
     .tab-btn.active {
       background: var(--bg-card-2);
       color: var(--cyan);
-      box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
     }
 
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* KPIs */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 12px;
     }
-    @media (min-width: 680px) {
-      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (min-width: 640px) {
+      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     @media (min-width: 920px) {
-      .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     }
 
     .kpi {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 12px 13px;
+      padding: 12px;
+      min-width: 0;
     }
-    .kpi-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .kpi-val { font-size: 1.32rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
-    .kpi-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .kpi-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .kpi-val {
+      font-size: clamp(1.15rem, 3.8vw, 1.35rem);
+      font-weight: 700;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kpi-sub {
+      font-size: 0.7rem;
+      color: var(--dim);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
+    /* Cards & Charts */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 15px;
-      margin-bottom: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
     }
+
     .card-head {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px 12px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
     }
-    .card h2 { font-size: 1rem; font-weight: 600; }
-    .card-sub { font-size: 0.76rem; color: var(--muted); }
 
-    .chart-box { position: relative; height: 250px; width: 100%; }
-    .chart-box.tall { height: 290px; }
+    .card h2 {
+      font-size: 0.96rem;
+      font-weight: 650;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .card-sub {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .chart-box {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      height: 245px;
+      overflow: hidden;
+    }
+    .chart-box.tall { height: 280px; }
+    .chart-box canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
 
     /* Calendar */
     .cal-legend {
-      display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.72rem; color: var(--muted);
+      display: flex;
+      gap: 8px 10px;
+      flex-wrap: wrap;
+      font-size: 0.7rem;
+      color: var(--muted);
     }
     .cal-legend span { display: inline-flex; align-items: center; gap: 4px; }
-    .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .swatch { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
 
     .cal-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 5px;
       margin-top: 10px;
+      width: 100%;
     }
     .cal-dow {
       text-align: center;
-      font-size: 0.7rem;
-      color: var(--muted);
+      font-size: 0.68rem;
+      color: var(--dim);
       font-weight: 600;
       padding-bottom: 2px;
     }
     .cal-cell {
       aspect-ratio: 1 / 1;
-      border-radius: 10px;
+      border-radius: 9px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 2.5vw, 0.78rem);
       font-weight: 600;
       cursor: pointer;
       position: relative;
-      border: 1px solid transparent;
-      transition: transform 0.12s ease, border-color 0.12s ease;
+      border: 1.5px solid transparent;
+      min-width: 0;
+      transition: transform 0.1s ease, border-color 0.12s ease;
     }
-    .cal-cell:active { transform: scale(0.94); }
-    .cal-cell.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(34,211,238,0.45); }
+    .cal-cell:active { transform: scale(0.93); }
+    .cal-cell.selected {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.45);
+    }
     .cal-cell.empty { background: transparent; cursor: default; }
-    .cal-cell .hrs { font-size: 0.65rem; opacity: 0.9; font-weight: 500; }
+    .cal-cell .hrs {
+      font-size: clamp(0.56rem, 2vw, 0.65rem);
+      opacity: 0.92;
+      font-weight: 500;
+      margin-top: 1px;
+    }
+    .cal-cell .month-tag {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 0.52rem;
+      text-transform: uppercase;
+      opacity: 0.85;
+      letter-spacing: 0.02em;
+    }
     .cal-cell .cause-dot {
       position: absolute;
-      top: 4px; right: 4px;
-      width: 6px; height: 6px;
+      top: 4px;
+      right: 4px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       background: #fff;
     }
@@ -289,63 +419,97 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
-      font-size: 0.84rem;
+      font-size: 0.82rem;
     }
     .day-detail-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-top: 8px;
     }
     @media (min-width: 600px) {
-      .day-detail-grid { grid-template-columns: repeat(4, 1fr); }
+      .day-detail-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
-    .dd-item span { display: block; font-size: 0.7rem; color: var(--muted); }
-    .dd-item strong { font-size: 0.92rem; }
+    .dd-item span { display: block; font-size: 0.68rem; color: var(--muted); }
+    .dd-item strong { font-size: 0.9rem; font-variant-numeric: tabular-nums; }
     .dd-cause {
       margin-top: 10px;
       padding: 8px 10px;
       border-radius: 8px;
-      background: rgba(236, 72, 153, 0.14);
-      border: 1px solid rgba(236, 72, 153, 0.35);
+      background: rgba(236, 72, 153, 0.13);
+      border: 1px solid rgba(236, 72, 153, 0.32);
       color: #fbcfe8;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
     }
 
+    /* Summary strip inside Cause Card */
+    .impact-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .impact-pill {
+      background: var(--bg-card-2);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 9px 11px;
+    }
+    .impact-pill .lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; }
+    .impact-pill .val { font-size: 0.96rem; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .impact-pill .sub { font-size: 0.7rem; color: var(--dim); }
+
     /* Tables */
-    .table-wrap { overflow-x: auto; }
+    .table-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
     }
     th, td {
       text-align: left;
-      padding: 9px 8px;
+      padding: 8px 7px;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
-    th { color: var(--muted); font-weight: 600; font-size: 0.74rem; text-transform: uppercase; }
-    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    td.num, th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    tbody tr:last-child td { border-bottom: none; }
 
     .badge {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 999px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 600;
+      font-variant-numeric: tabular-nums;
     }
-    .badge.good { background: rgba(16,185,129,0.16); color: #6ee7b7; }
-    .badge.warn { background: rgba(245,158,11,0.16); color: #fcd34d; }
-    .badge.bad  { background: rgba(239,68,68,0.16); color: #fca5a5; }
+    .badge.good { background: rgba(16, 185, 129, 0.16); color: #6ee7b7; }
+    .badge.warn { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
+    .badge.bad  { background: rgba(244, 63, 94, 0.16); color: #fda4af; }
 
+    /* Recommendations */
     .rec-box {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: 9px;
     }
     @media (min-width: 640px) {
-      .rec-box { grid-template-columns: repeat(3, 1fr); }
+      .rec-box { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     .rec-item {
       background: var(--bg-card-2);
@@ -353,9 +517,20 @@
       border-radius: 12px;
       padding: 12px;
     }
-    .rec-item .label { font-size: 0.74rem; color: var(--muted); }
-    .rec-item .val { font-size: 1.15rem; font-weight: 700; margin-top: 4px; color: var(--cyan); }
-    .rec-item .desc { font-size: 0.76rem; color: var(--muted); margin-top: 4px; }
+    .rec-item .label { font-size: 0.72rem; color: var(--muted); }
+    .rec-item .val { font-size: 1.15rem; font-weight: 700; margin-top: 3px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+    .rec-item .desc { font-size: 0.74rem; color: var(--dim); margin-top: 4px; }
+
+    .insight-note {
+      margin-top: 10px;
+      padding: 9px 11px;
+      border-radius: 10px;
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      font-size: 0.76rem;
+      color: #cbd5e1;
+    }
+    .insight-note strong { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -372,23 +547,30 @@
     </header>
 
     <section class="controls">
-      <div class="control-group" id="presetGroup">
-        <span class="control-label">Rango</span>
-        <button class="pill active" data-preset="all">Todo</button>
-        <button class="pill" data-preset="job">Trabajo</button>
-        <button class="pill" data-preset="4w">4 sem</button>
-        <button class="pill" data-preset="2w">2 sem</button>
+      <div class="controls-top">
+        <div class="control-group" id="presetGroup">
+          <span class="control-label">Rango</span>
+          <button class="pill active" data-preset="all">Todo</button>
+          <button class="pill" data-preset="job">Trabajo</button>
+          <button class="pill" data-preset="4w">4 sem</button>
+          <button class="pill" data-preset="2w">2 sem</button>
+        </div>
+        <div class="control-group" id="goalGroup">
+          <span class="control-label">Meta</span>
+          <button class="pill" data-goal="420">7 h</button>
+          <button class="pill active" data-goal="450">7,5 h</button>
+          <button class="pill" data-goal="480">8 h</button>
+        </div>
       </div>
-      <div class="control-group" id="goalGroup">
-        <span class="control-label">Meta</span>
-        <button class="pill" data-goal="420">7 h</button>
-        <button class="pill active" data-goal="450">7,5 h</button>
-        <button class="pill" data-goal="480">8 h</button>
-      </div>
-      <div class="range-sliders">
-        <input type="range" id="fromSlider" min="1" max="55" value="1" />
-        <span class="range-text" id="rangeLabel">1 oct – 24 nov</span>
-        <input type="range" id="toSlider" min="1" max="55" value="55" />
+      <div class="range-wrap">
+        <div class="range-header">
+          <span>Periodo visible</span>
+          <span class="range-text" id="rangeLabel">1 oct – 24 nov</span>
+        </div>
+        <div class="range-inputs">
+          <input type="range" id="fromSlider" min="1" max="55" value="1" aria-label="Desde" />
+          <input type="range" id="toSlider" min="1" max="55" value="55" aria-label="Hasta" />
+        </div>
       </div>
     </section>
 
@@ -398,13 +580,13 @@
       <button class="tab-btn" data-tab="fases">Fases</button>
     </nav>
 
-    <!-- TAB 1: RESUMEN -->
+    <!-- ==================== TAB 1: RESUMEN ==================== -->
     <div class="tab-panel active" id="tab-resumen">
       <div class="kpi-grid" id="kpiGrid"></div>
 
       <div class="card">
         <div class="card-head">
-          <h2>Duración y promedio móvil (7 días)</h2>
+          <h2>Duración nocturna y promedio móvil (7d)</h2>
           <span class="card-sub" id="durMetaSub">Meta: 7,5 h</span>
         </div>
         <div class="chart-box"><canvas id="chartDur"></canvas></div>
@@ -417,8 +599,8 @@
             <span><i class="swatch" style="background:#10b981"></i> ≥ Meta</span>
             <span><i class="swatch" style="background:#3b82f6"></i> -30m</span>
             <span><i class="swatch" style="background:#f59e0b"></i> -1h</span>
-            <span><i class="swatch" style="background:#ef4444"></i> Crítico</span>
-            <span><i class="swatch" style="background:#fff;border-radius:50%"></i> Con nota</span>
+            <span><i class="swatch" style="background:#f43f5e"></i> Crítico</span>
+            <span><i class="swatch" style="background:#fff;border-radius:50%"></i> Nota</span>
           </div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
@@ -427,8 +609,8 @@
 
       <div class="card">
         <div class="card-head">
-          <h2>Deuda acumulada de sueño (últimos 7 días)</h2>
-          <span class="card-sub">Déficit o superávit móvil frente a tu meta</span>
+          <h2>Deuda acumulada de sueño (7 días)</h2>
+          <span class="card-sub">Balance móvil frente a tu meta (0h = equilibrado)</span>
         </div>
         <div class="chart-box"><canvas id="chartDebt"></canvas></div>
       </div>
@@ -436,8 +618,9 @@
       <div class="card">
         <div class="card-head">
           <h2>Impacto de causas registradas</h2>
-          <span class="card-sub">Comparado frente a noches sin notas</span>
+          <span class="card-sub">Noches con factores externos vs. noches sin notas</span>
         </div>
+        <div class="impact-strip" id="impactStrip"></div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -446,7 +629,7 @@
                 <th>Causa / Nota</th>
                 <th class="num">Duración</th>
                 <th class="num">REM</th>
-                <th class="num">Profundo</th>
+                <th class="num">Prof.</th>
                 <th class="num">Δ Meta</th>
               </tr>
             </thead>
@@ -467,9 +650,9 @@
                 <th>Semana</th>
                 <th class="num">Noches</th>
                 <th class="num">Prom.</th>
-                <th class="num">Profundo</th>
+                <th class="num">Prof.</th>
                 <th class="num">REM</th>
-                <th class="num">Eficiencia</th>
+                <th class="num">Efic.</th>
               </tr>
             </thead>
             <tbody id="weeklyTableBody"></tbody>
@@ -478,12 +661,12 @@
       </div>
     </div>
 
-    <!-- TAB 2: HORARIOS -->
+    <!-- ==================== TAB 2: HORARIOS ==================== -->
     <div class="tab-panel" id="tab-horarios">
       <div class="card">
         <div class="card-head">
           <h2>Recomendación horaria</h2>
-          <span class="card-sub">Ajustada a tu meta seleccionada</span>
+          <span class="card-sub">Calculada según tu meta actual</span>
         </div>
         <div class="rec-box" id="recBox"></div>
       </div>
@@ -491,15 +674,24 @@
       <div class="card">
         <div class="card-head">
           <h2>Ventana de sueño (acostarse → despertar)</h2>
-          <span class="card-sub">Hora decimal respecto a medianoche (0 = 00:00)</span>
+          <span class="card-sub">Cyan: antes de 01:00 · Magenta: madrugada</span>
         </div>
         <div class="chart-box tall"><canvas id="chartSchedule"></canvas></div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <h2>Día de semana vs. Fin de semana / Turnos</h2>
-          <span class="card-sub">Comparación de horarios y recuperación</span>
+          <h2>Hora de acostarse vs. Fase REM</h2>
+          <span class="card-sub">Cómo impacta trasnochar en tu recuperación REM</span>
+        </div>
+        <div class="chart-box"><canvas id="chartBedRem"></canvas></div>
+        <div class="insight-note" id="bedRemInsight"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Semana vs. Fin de semana y Madrugadas</h2>
+          <span class="card-sub">Comparación de horarios y calidad</span>
         </div>
         <div class="table-wrap">
           <table>
@@ -507,9 +699,9 @@
               <tr>
                 <th>Grupo</th>
                 <th class="num">Noches</th>
-                <th class="num">Acostarse</th>
-                <th class="num">Despertar</th>
-                <th class="num">Duración</th>
+                <th class="num">Acost.</th>
+                <th class="num">Desp.</th>
+                <th class="num">Durac.</th>
                 <th class="num">REM</th>
               </tr>
             </thead>
@@ -519,19 +711,30 @@
       </div>
     </div>
 
-    <!-- TAB 3: FASES -->
+    <!-- ==================== TAB 3: FASES ==================== -->
     <div class="tab-panel" id="tab-fases">
       <div class="card">
         <div class="card-head">
           <h2>Sueño Profundo vs. REM (minutos)</h2>
-          <span class="card-sub">Referencia saludable: Profundo ≥ 60m · REM ≥ 90m</span>
+          <span class="card-sub">Referencia: Profundo ≥ 60m · REM ≥ 90m</span>
         </div>
         <div class="chart-box"><canvas id="chartStages"></canvas></div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <h2>Eficiencia de sueño (%) y vigilia nocturna (min)</h2>
+          <h2>Fases según duración de la noche</h2>
+          <span class="card-sub">Promedio de Profundo y REM por tramo de horas dormidas</span>
+        </div>
+        <div class="chart-box"><canvas id="chartStagesByDur"></canvas></div>
+        <div class="insight-note">
+          <strong>Patrón fisiológico:</strong> el sueño profundo se mantiene estable incluso en noches cortas, mientras que el <strong>REM</strong> crece con fuerza a partir de las <strong>6,5–7 horas</strong>.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Eficiencia de sueño (%) y vigilia nocturna</h2>
           <span class="card-sub">Eficiencia = Sueño / (Sueño + Despierto)</span>
         </div>
         <div class="chart-box"><canvas id="chartEff"></canvas></div>
@@ -539,7 +742,7 @@
 
       <div class="card">
         <div class="card-head">
-          <h2>Distribución de fases por noche</h2>
+          <h2>Distribución completa de fases por noche</h2>
           <span class="card-sub">Profundo, REM, Esencial/Ligero y Despierto</span>
         </div>
         <div class="chart-box tall"><canvas id="chartStacked"></canvas></div>
@@ -607,7 +810,7 @@
       [52,3.55,9.9,375,7,60,105],
       [53,3.65,8.967,302,17,87,44],
       [54,-1.383,6.317,444,18,52,100],
-      [55,-0.033,6.99,401,2,76,113]
+      [55,0.322,6.997,401,2,76,113]
     ];
 
     let CA = {
@@ -627,11 +830,16 @@
       54: 'ruido externo, despertar temprano'
     };
 
-    let GOAL = 450; // minutos (7.5h)
+    let GOAL = 450; // 7.5 h
     let FROM = 1;
     let TO = N[N.length - 1][0];
     let SELECTED_DAY = TO;
-    const PR = { all: [1, TO], job: [13, TO], '4w': [Math.max(1, TO - 27), TO], '2w': [Math.max(1, TO - 13), TO] };
+    const PR = {
+      all: [1, TO],
+      job: [13, TO],
+      '4w': [Math.max(1, TO - 27), TO],
+      '2w': [Math.max(1, TO - 13), TO]
+    };
 
     const fs = document.getElementById('fromSlider');
     const ts = document.getElementById('toSlider');
@@ -639,6 +847,13 @@
 
     const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     const DOWS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+    function sanitizeRow(r) {
+      const row = [...r];
+      // Blindaje por si algún bed llegara corrido -24h
+      if (typeof row[1] === 'number' && row[1] < -12) row[1] = Number((row[1] + 24).toFixed(3));
+      return row;
+    }
 
     function dToDate(d) {
       const dt = new Date(BASE_DATE);
@@ -698,10 +913,69 @@
       renderWeeklyTable(rows);
       renderRecommendations(rows);
       renderScheduleChart(rows);
+      renderBedRemChart(rows);
       renderSplitTable(rows);
       renderStagesChart(rows);
+      renderStagesByDurChart(rows);
       renderEffChart(rows);
       renderStackedChart(rows);
+    }
+
+    function baseChartOptions(extra = {}) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { top: 8, right: 8, bottom: 4, left: 2 }
+        },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#94a3b8',
+              boxWidth: 10,
+              boxHeight: 10,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 10,
+              font: { size: 11 }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            borderColor: 'rgba(148, 163, 184, 0.25)',
+            borderWidth: 1,
+            titleColor: '#f8fafc',
+            bodyColor: '#cbd5e1',
+            padding: 9,
+            cornerRadius: 8
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#94a3b8',
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 6,
+              font: { size: 10 }
+            },
+            grid: { color: 'rgba(148, 163, 184, 0.07)' }
+          },
+          y: {
+            ticks: { color: '#94a3b8', font: { size: 10 } },
+            grid: { color: 'rgba(148, 163, 184, 0.08)' }
+          }
+        },
+        ...extra
+      };
+    }
+
+    function upsertChart(id, cfg) {
+      if (charts[id]) charts[id].destroy();
+      const ctx = document.getElementById(id).getContext('2d');
+      charts[id] = new Chart(ctx, cfg);
     }
 
     function renderKPIs(rows) {
@@ -724,13 +998,13 @@
         </div>
         <div class="kpi">
           <div class="kpi-label">Profundo</div>
-          <div class="kpi-val" style="color:var(--blue)">${Math.round(avgDp)} min</div>
-          <div class="kpi-sub">${Math.round((avgDp / avgDur) * 100)}% del sueño</div>
+          <div class="kpi-val" style="color:var(--blue)">${avgDp != null ? Math.round(avgDp) + ' min' : '—'}</div>
+          <div class="kpi-sub">${avgDp != null ? Math.round((avgDp / avgDur) * 100) + '% del sueño' : '—'}</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Fase REM</div>
-          <div class="kpi-val" style="color:var(--purple)">${Math.round(avgRem)} min</div>
-          <div class="kpi-sub">${Math.round((avgRem / avgDur) * 100)}% del sueño</div>
+          <div class="kpi-val" style="color:var(--purple)">${avgRem != null ? Math.round(avgRem) + ' min' : '—'}</div>
+          <div class="kpi-sub">${avgRem != null ? Math.round((avgRem / avgDur) * 100) + '% del sueño' : '—'}</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Eficiencia</div>
@@ -750,25 +1024,6 @@
       `;
     }
 
-    function upsertChart(id, cfg) {
-      if (charts[id]) charts[id].destroy();
-      const ctx = document.getElementById(id).getContext('2d');
-      charts[id] = new Chart(ctx, cfg);
-    }
-
-    const commonOpts = {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } }
-      },
-      scales: {
-        x: { ticks: { color: '#94a3b8', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,0.08)' } },
-        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.08)' } }
-      }
-    };
-
     function renderDurChart(rows) {
       const labels = rows.map(r => fmtShortDate(r[0]));
       const durs = rows.map(r => +(r[3] / 60).toFixed(2));
@@ -776,7 +1031,16 @@
         const slice = rows.slice(Math.max(0, i - 6), i + 1);
         return +(avg(slice.map(x => x[3])) / 60).toFixed(2);
       });
-      const goalArr = rows.map(() => +(GOAL / 60).toFixed(2));
+      const goalVal = +(GOAL / 60).toFixed(2);
+      const maxH = Math.ceil(Math.max(goalVal + 1, ...durs));
+
+      const opts = baseChartOptions();
+      opts.scales.y = {
+        ...opts.scales.y,
+        min: 0,
+        max: Math.max(9.5, maxH),
+        ticks: { ...opts.scales.y.ticks, stepSize: 2, callback: v => `${v}h` }
+      };
 
       upsertChart('chartDur', {
         type: 'bar',
@@ -784,19 +1048,24 @@
           labels,
           datasets: [
             {
-              label: 'Horas dormidas',
+              label: 'Horas',
               data: durs,
-              backgroundColor: rows.map(r => r[3] >= GOAL ? 'rgba(16,185,129,0.65)' : r[3] >= GOAL - 45 ? 'rgba(59,130,246,0.65)' : 'rgba(239,68,68,0.6)'),
-              borderRadius: 5,
+              backgroundColor: rows.map(r =>
+                r[3] >= GOAL ? 'rgba(16, 185, 129, 0.72)' :
+                r[3] >= GOAL - 45 ? 'rgba(59, 130, 246, 0.72)' :
+                'rgba(244, 63, 94, 0.68)'
+              ),
+              borderRadius: 4,
+              maxBarThickness: 18,
               order: 2
             },
             {
-              label: 'Promedio móvil 7d',
+              label: 'Prom. 7d',
               type: 'line',
               data: ma7,
               borderColor: '#22d3ee',
               backgroundColor: '#22d3ee',
-              borderWidth: 2.2,
+              borderWidth: 2,
               pointRadius: 0,
               tension: 0.35,
               order: 1
@@ -804,22 +1073,16 @@
             {
               label: 'Meta',
               type: 'line',
-              data: goalArr,
+              data: rows.map(() => goalVal),
               borderColor: '#a855f7',
-              borderDash: [6, 5],
-              borderWidth: 1.6,
+              borderDash: [5, 5],
+              borderWidth: 1.5,
               pointRadius: 0,
               order: 0
             }
           ]
         },
-        options: {
-          ...commonOpts,
-          scales: {
-            ...commonOpts.scales,
-            y: { ...commonOpts.scales.y, min: 0, max: 10, title: { display: true, text: 'Horas', color: '#94a3b8' } }
-          }
-        }
+        options: opts
       });
     }
 
@@ -829,7 +1092,7 @@
       let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
 
       const firstDate = dToDate(rows[0][0]);
-      const startOffset = (firstDate.getDay() + 6) % 7; // Monday = 0
+      const startOffset = (firstDate.getDay() + 6) % 7;
       for (let i = 0; i < startOffset; i++) html += `<div class="cal-cell empty"></div>`;
 
       const rowMap = new Map(rows.map(r => [r[0], r]));
@@ -838,20 +1101,24 @@
       for (let d = minD; d <= maxD; d++) {
         const r = rowMap.get(d);
         const dt = dToDate(d);
+        const isFirst = dt.getDate() === 1 || d === minD;
+        const mTag = isFirst ? `<span class="month-tag">${MONTHS[dt.getMonth()]}</span>` : '';
+
         if (!r) {
-          html += `<div class="cal-cell" style="background:rgba(148,163,184,0.08);color:var(--muted)">${dt.getDate()}</div>`;
+          html += `<div class="cal-cell" style="background:rgba(148,163,184,0.08);color:var(--dim)">${mTag}${dt.getDate()}</div>`;
           continue;
         }
         const diff = r[3] - GOAL;
-        let bg = 'rgba(239,68,68,0.42)';
-        if (diff >= 0) bg = 'rgba(16,185,129,0.45)';
-        else if (diff >= -30) bg = 'rgba(59,130,246,0.45)';
-        else if (diff >= -60) bg = 'rgba(245,158,11,0.45)';
+        let bg = 'rgba(244, 63, 94, 0.36)';
+        if (diff >= 0) bg = 'rgba(16, 185, 129, 0.42)';
+        else if (diff >= -30) bg = 'rgba(59, 130, 246, 0.42)';
+        else if (diff >= -60) bg = 'rgba(245, 158, 11, 0.40)';
 
         const hasCause = Boolean(CA[d]);
         const sel = d === SELECTED_DAY ? 'selected' : '';
         html += `
           <div class="cal-cell ${sel}" data-day="${d}" style="background:${bg}">
+            ${mTag}
             ${hasCause ? '<span class="cause-dot"></span>' : ''}
             <span>${dt.getDate()}</span>
             <span class="hrs">${(r[3]/60).toFixed(1)}h</span>
@@ -882,7 +1149,7 @@
             <div class="dd-item"><span>Profundo / REM</span><strong>${cur[5] != null ? cur[5]+'m' : '—'} / ${cur[6] != null ? cur[6]+'m' : '—'}</strong></div>
             <div class="dd-item"><span>Eficiencia / Vigilia</span><strong>${eff}% (${cur[4]}m)</strong></div>
           </div>
-          ${light != null ? `<div style="font-size:0.74rem;color:var(--muted);margin-top:6px">Esencial/Ligero: ${light} min</div>` : ''}
+          ${light != null ? `<div style="font-size:0.72rem;color:var(--dim);margin-top:6px">Esencial/Ligero: ${light} min</div>` : ''}
           ${CA[cur[0]] ? `<div class="dd-cause"><strong>Nota / Causa:</strong> ${CA[cur[0]]}</div>` : ''}
         `;
       }
@@ -894,44 +1161,80 @@
         const slice = rows.slice(Math.max(0, i - 6), i + 1);
         return +(slice.reduce((s, x) => s + (x[3] - GOAL), 0) / 60).toFixed(2);
       });
+      const minVal = Math.min(0, ...debt);
+      const maxVal = Math.max(0, ...debt);
+
+      const opts = baseChartOptions();
+      opts.scales.y = {
+        ...opts.scales.y,
+        suggestedMin: Math.floor(minVal - 1),
+        suggestedMax: Math.ceil(maxVal + 1),
+        ticks: { ...opts.scales.y.ticks, callback: v => `${v > 0 ? '+' : ''}${v}h` }
+      };
 
       upsertChart('chartDebt', {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            label: 'Balance 7 días (horas)',
-            data: debt,
-            borderColor: '#ec4899',
-            backgroundColor: 'rgba(236,72,153,0.16)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 2
-          }]
+          datasets: [
+            {
+              label: 'Balance 7d (h)',
+              data: debt,
+              borderColor: '#ec4899',
+              backgroundColor: 'rgba(236, 72, 153, 0.15)',
+              fill: true,
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 1.5
+            },
+            {
+              label: 'Equilibrio (0h)',
+              data: rows.map(() => 0),
+              borderColor: 'rgba(148, 163, 184, 0.45)',
+              borderDash: [4, 4],
+              borderWidth: 1,
+              pointRadius: 0
+            }
+          ]
         },
-        options: {
-          ...commonOpts,
-          scales: {
-            ...commonOpts.scales,
-            y: { ...commonOpts.scales.y, title: { display: true, text: 'Horas (±)', color: '#94a3b8' } }
-          }
-        }
+        options: opts
       });
     }
 
     function renderCauseTable(rows) {
-      const withCause = rows.filter(r => CA[r[0]]).reverse();
+      const withCause = rows.filter(r => CA[r[0]]);
+      const clean = rows.filter(r => !CA[r[0]]);
+
+      const strip = document.getElementById('impactStrip');
+      const aCleanDur = avg(clean.map(r => r[3]));
+      const aCleanRem = avg(clean.map(r => r[6]));
+      const aCauseDur = avg(withCause.map(r => r[3]));
+      const aCauseRem = avg(withCause.map(r => r[6]));
+
+      strip.innerHTML = `
+        <div class="impact-pill">
+          <div class="lbl">Noches sin notas (${clean.length})</div>
+          <div class="val" style="color:var(--green)">${fmtHM(aCleanDur)}</div>
+          <div class="sub">REM prom.: ${aCleanRem != null ? Math.round(aCleanRem)+' min' : '—'}</div>
+        </div>
+        <div class="impact-pill">
+          <div class="lbl">Con causa/nota (${withCause.length})</div>
+          <div class="val" style="color:var(--magenta)">${fmtHM(aCauseDur)}</div>
+          <div class="sub">REM prom.: ${aCauseRem != null ? Math.round(aCauseRem)+' min' : '—'}</div>
+        </div>
+      `;
+
       const tbody = document.getElementById('causeTableBody');
       if (!withCause.length) {
         tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">No hay causas registradas en este rango.</td></tr>`;
         return;
       }
-      tbody.innerHTML = withCause.map(r => {
+      tbody.innerHTML = [...withCause].reverse().map(r => {
         const delta = r[3] - GOAL;
         return `
           <tr>
             <td>${fmtShortDate(r[0])}</td>
-            <td style="white-space:normal;min-width:150px">${CA[r[0]]}</td>
+            <td style="white-space:normal;min-width:140px">${CA[r[0]]}</td>
             <td class="num">${fmtHM(r[3])}</td>
             <td class="num" style="color:var(--purple)">${r[6] != null ? r[6]+'m' : '—'}</td>
             <td class="num" style="color:var(--blue)">${r[5] != null ? r[5]+'m' : '—'}</td>
@@ -953,8 +1256,7 @@
         weeks.get(key).items.push(r);
       });
 
-      const tbody = document.getElementById('weeklyTableBody');
-      tbody.innerHTML = Array.from(weeks.values()).reverse().map(w => {
+      document.getElementById('weeklyTableBody').innerHTML = Array.from(weeks.values()).reverse().map(w => {
         const aDur = avg(w.items.map(x => x[3]));
         const aDp = avg(w.items.map(x => x[5]));
         const aRem = avg(w.items.map(x => x[6]));
@@ -964,9 +1266,9 @@
             <td>Sem. ${w.label}</td>
             <td class="num">${w.items.length}</td>
             <td class="num">${fmtHM(aDur)}</td>
-            <td class="num">${aDp != null ? Math.round(aDp)+'m' : '—'}</td>
-            <td class="num">${aRem != null ? Math.round(aRem)+'m' : '—'}</td>
-            <td class="num">${aEff.toFixed(1)}%</td>
+            <td class="num" style="color:var(--blue)">${aDp != null ? Math.round(aDp)+'m' : '—'}</td>
+            <td class="num" style="color:var(--purple)">${aRem != null ? Math.round(aRem)+'m' : '—'}</td>
+            <td class="num" style="color:var(--green)">${aEff.toFixed(1)}%</td>
           </tr>
         `;
       }).join('');
@@ -992,12 +1294,12 @@
         <div class="rec-item">
           <div class="label">Promedio actual al acostarte</div>
           <div class="val" style="color:var(--purple)">${fmtClock(avgBedAll)}</div>
-          <div class="desc">Variabilidad (desv. estándar): ±${bedStd.toFixed(1)} h.</div>
+          <div class="desc">Variabilidad horaria: ±${bedStd.toFixed(1)} h.</div>
         </div>
         <div class="rec-item">
           <div class="label">Colchón de vigilia</div>
           <div class="val" style="color:var(--green)">+${Math.round(avgAw)} min</div>
-          <div class="desc">Tiempo promedio despierto en cama incluido en el cálculo.</div>
+          <div class="desc">Tiempo promedio despierto en cama incluido.</div>
         </div>
       `;
     }
@@ -1005,46 +1307,94 @@
     function renderScheduleChart(rows) {
       const labels = rows.map(r => fmtShortDate(r[0]));
       const floating = rows.map(r => [r[1], r[2]]);
+      const yMin = Math.floor(Math.min(-2, ...rows.map(r => r[1]))) - 0.5;
+      const yMax = Math.ceil(Math.max(10, ...rows.map(r => r[2]))) + 0.5;
+
+      const opts = baseChartOptions();
+      opts.scales.y = {
+        ...opts.scales.y,
+        min: yMin,
+        max: yMax,
+        ticks: { ...opts.scales.y.ticks, stepSize: 2, callback: v => fmtClock(v) }
+      };
+      opts.plugins.tooltip.callbacks = {
+        label: ctx => {
+          const [b, w] = ctx.raw;
+          return ` ${fmtClock(b)} → ${fmtClock(w)}`;
+        }
+      };
 
       upsertChart('chartSchedule', {
         type: 'bar',
         data: {
           labels,
           datasets: [{
-            label: 'Bloque de sueño (acostarse → despertar)',
+            label: 'Bloque de sueño',
             data: floating,
-            backgroundColor: rows.map(r => r[1] > 2 ? 'rgba(236,72,153,0.65)' : 'rgba(34,211,238,0.65)'),
-            borderRadius: 5,
-            borderSkipped: false
+            backgroundColor: rows.map(r => r[1] > 1 ? 'rgba(236, 72, 153, 0.72)' : 'rgba(34, 211, 238, 0.72)'),
+            borderRadius: 4,
+            borderSkipped: false,
+            maxBarThickness: 16
           }]
         },
-        options: {
-          ...commonOpts,
-          scales: {
-            ...commonOpts.scales,
-            y: {
-              ...commonOpts.scales.y,
-              min: -3,
-              max: 11,
-              ticks: {
-                color: '#94a3b8',
-                stepSize: 2,
-                callback: v => fmtClock(v)
-              }
+        options: opts
+      });
+    }
+
+    function renderBedRemChart(rows) {
+      const valid = rows.filter(r => r[6] != null);
+      const early = valid.filter(r => r[1] <= 1);
+      const late = valid.filter(r => r[1] > 1);
+      const earlyRem = avg(early.map(r => r[6]));
+      const lateRem = avg(late.map(r => r[6]));
+
+      const insight = document.getElementById('bedRemInsight');
+      if (earlyRem != null && lateRem != null) {
+        const diff = Math.round(earlyRem - lateRem);
+        insight.innerHTML = `<strong>Hallazgo:</strong> acostándote antes de la 01:00 promedias <strong>${Math.round(earlyRem)} min</strong> de REM, frente a <strong>${Math.round(lateRem)} min</strong> tras la 01:00 (${diff >= 0 ? '-' + diff : '+' + Math.abs(diff)} min).`;
+      } else {
+        insight.innerHTML = `<strong>Referencia:</strong> cada punto muestra una noche según su hora de inicio y minutos de REM.`;
+      }
+
+      const opts = baseChartOptions();
+      opts.interaction = { mode: 'nearest', intersect: true };
+      opts.scales.x = {
+        type: 'linear',
+        min: Math.floor(Math.min(-2, ...valid.map(r => r[1]))),
+        max: Math.ceil(Math.max(5.5, ...valid.map(r => r[1]))),
+        ticks: { color: '#94a3b8', stepSize: 1, font: { size: 10 }, callback: v => fmtClock(v) },
+        grid: { color: 'rgba(148, 163, 184, 0.08)' }
+      };
+      opts.scales.y = {
+        ...opts.scales.y,
+        min: 0,
+        suggestedMax: 185,
+        ticks: { ...opts.scales.y.ticks, callback: v => `${v}m` }
+      };
+      opts.plugins.tooltip.callbacks = {
+        title: items => items.length ? fmtFullDate(items[0].raw.d) : '',
+        label: ctx => ` Acostado: ${fmtClock(ctx.raw.x)} · REM: ${ctx.raw.y} min`
+      };
+
+      upsertChart('chartBedRem', {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'Antes de 01:00',
+              data: early.map(r => ({ x: r[1], y: r[6], d: r[0] })),
+              backgroundColor: 'rgba(34, 211, 238, 0.85)',
+              pointRadius: 5
+            },
+            {
+              label: 'Después de 01:00',
+              data: late.map(r => ({ x: r[1], y: r[6], d: r[0] })),
+              backgroundColor: 'rgba(236, 72, 153, 0.85)',
+              pointRadius: 5
             }
-          },
-          plugins: {
-            ...commonOpts.plugins,
-            tooltip: {
-              callbacks: {
-                label: ctx => {
-                  const [b, w] = ctx.raw;
-                  return ` ${fmtClock(b)} → ${fmtClock(w)}`;
-                }
-              }
-            }
-          }
-        }
+          ]
+        },
+        options: opts
       });
     }
 
@@ -1053,7 +1403,7 @@
         { name: 'Semana (Lun–Vie)', items: rows.filter(r => { const d = dToDate(r[0]).getDay(); return d >= 1 && d <= 5; }) },
         { name: 'Fin de semana (Sáb–Dom)', items: rows.filter(r => { const d = dToDate(r[0]).getDay(); return d === 0 || d === 6; }) },
         { name: 'Acostado antes de 01:00', items: rows.filter(r => r[1] <= 1) },
-        { name: 'Madrugada (después de 01:00)', items: rows.filter(r => r[1] > 1) }
+        { name: 'Madrugada (> 01:00)', items: rows.filter(r => r[1] > 1) }
       ];
       document.getElementById('splitTableBody').innerHTML = groups.map(g => {
         if (!g.items.length) return '';
@@ -1072,6 +1422,14 @@
 
     function renderStagesChart(rows) {
       const labels = rows.map(r => fmtShortDate(r[0]));
+      const opts = baseChartOptions();
+      opts.scales.y = {
+        ...opts.scales.y,
+        min: 0,
+        suggestedMax: 185,
+        ticks: { ...opts.scales.y.ticks, callback: v => `${v}m` }
+      };
+
       upsertChart('chartStages', {
         type: 'line',
         data: {
@@ -1081,28 +1439,99 @@
               label: 'REM (min)',
               data: rows.map(r => r[6]),
               borderColor: '#a855f7',
-              backgroundColor: 'rgba(168,85,247,0.16)',
+              backgroundColor: 'rgba(168, 85, 247, 0.14)',
               fill: true,
+              borderWidth: 2,
               tension: 0.3,
+              pointRadius: 1.5,
               spanGaps: true
             },
             {
               label: 'Profundo (min)',
               data: rows.map(r => r[5]),
               borderColor: '#3b82f6',
-              backgroundColor: 'rgba(59,130,246,0.16)',
+              backgroundColor: 'rgba(59, 130, 246, 0.14)',
               fill: true,
+              borderWidth: 2,
               tension: 0.3,
+              pointRadius: 1.5,
               spanGaps: true
+            },
+            {
+              label: 'Ref. REM (90m)',
+              data: rows.map(() => 90),
+              borderColor: 'rgba(168, 85, 247, 0.4)',
+              borderDash: [4, 4],
+              borderWidth: 1,
+              pointRadius: 0
             }
           ]
         },
-        options: commonOpts
+        options: opts
+      });
+    }
+
+    function renderStagesByDurChart(rows) {
+      const buckets = [
+        { label: '< 5h', min: 0, max: 300 },
+        { label: '5–6h', min: 300, max: 360 },
+        { label: '6–7h', min: 360, max: 420 },
+        { label: '7–8h', min: 420, max: 480 },
+        { label: '≥ 8h', min: 480, max: 9999 }
+      ];
+      const dpData = [], remData = [], counts = [];
+      buckets.forEach(b => {
+        const sub = rows.filter(r => r[3] >= b.min && r[3] < b.max && r[5] != null && r[6] != null);
+        counts.push(sub.length);
+        dpData.push(sub.length ? Math.round(avg(sub.map(r => r[5]))) : 0);
+        remData.push(sub.length ? Math.round(avg(sub.map(r => r[6]))) : 0);
+      });
+
+      const opts = baseChartOptions();
+      opts.scales.y = {
+        ...opts.scales.y,
+        min: 0,
+        suggestedMax: 160,
+        ticks: { ...opts.scales.y.ticks, callback: v => `${v}m` }
+      };
+
+      upsertChart('chartStagesByDur', {
+        type: 'bar',
+        data: {
+          labels: buckets.map((b, i) => `${b.label} (${counts[i]})`),
+          datasets: [
+            { label: 'Profundo (min)', data: dpData, backgroundColor: 'rgba(59, 130, 246, 0.8)', borderRadius: 5, maxBarThickness: 28 },
+            { label: 'REM (min)', data: remData, backgroundColor: 'rgba(168, 85, 247, 0.8)', borderRadius: 5, maxBarThickness: 28 }
+          ]
+        },
+        options: opts
       });
     }
 
     function renderEffChart(rows) {
       const labels = rows.map(r => fmtShortDate(r[0]));
+      const effs = rows.map(r => +(r[3] / (r[3] + r[4]) * 100).toFixed(1));
+      const minEff = Math.max(50, Math.floor(Math.min(85, ...effs) / 5) * 5);
+
+      const opts = baseChartOptions();
+      opts.scales = {
+        x: opts.scales.x,
+        y: {
+          position: 'left',
+          min: minEff,
+          max: 100,
+          ticks: { color: '#10b981', font: { size: 10 }, callback: v => `${v}%` },
+          grid: { color: 'rgba(148, 163, 184, 0.08)' }
+        },
+        y1: {
+          position: 'right',
+          min: 0,
+          suggestedMax: 60,
+          ticks: { color: '#f59e0b', font: { size: 10 }, callback: v => `${v}m` },
+          grid: { drawOnChartArea: false }
+        }
+      };
+
       upsertChart('chartEff', {
         type: 'bar',
         data: {
@@ -1111,32 +1540,26 @@
             {
               label: 'Despierto (min)',
               data: rows.map(r => r[4]),
-              backgroundColor: 'rgba(245,158,11,0.55)',
+              backgroundColor: 'rgba(245, 158, 11, 0.55)',
               yAxisID: 'y1',
               borderRadius: 4,
+              maxBarThickness: 16,
               order: 2
             },
             {
               label: 'Eficiencia (%)',
               type: 'line',
-              data: rows.map(r => +(r[3] / (r[3] + r[4]) * 100).toFixed(1)),
+              data: effs,
               borderColor: '#10b981',
               borderWidth: 2,
-              pointRadius: 2,
+              pointRadius: 1.5,
               yAxisID: 'y',
               tension: 0.25,
               order: 1
             }
           ]
         },
-        options: {
-          ...commonOpts,
-          scales: {
-            x: commonOpts.scales.x,
-            y: { position: 'left', min: 65, max: 100, ticks: { color: '#10b981' }, grid: { color: 'rgba(148,163,184,0.08)' } },
-            y1: { position: 'right', min: 0, ticks: { color: '#f59e0b' }, grid: { drawOnChartArea: false } }
-          }
-        }
+        options: opts
       });
     }
 
@@ -1147,24 +1570,29 @@
       const lt = rows.map(r => (r[5] != null && r[6] != null) ? Math.max(0, r[3] - r[5] - r[6]) : r[3]);
       const aw = rows.map(r => r[4] ?? 0);
 
+      const opts = baseChartOptions();
+      opts.scales = {
+        x: { ...opts.scales.x, stacked: true },
+        y: {
+          ...opts.scales.y,
+          stacked: true,
+          min: 0,
+          ticks: { ...opts.scales.y.ticks, callback: v => `${Math.round(v/60)}h` }
+        }
+      };
+
       upsertChart('chartStacked', {
         type: 'bar',
         data: {
           labels,
           datasets: [
-            { label: 'Profundo', data: dp, backgroundColor: '#3b82f6' },
-            { label: 'REM', data: rem, backgroundColor: '#a855f7' },
-            { label: 'Esencial/Ligero', data: lt, backgroundColor: '#22d3ee' },
-            { label: 'Despierto', data: aw, backgroundColor: 'rgba(245,158,11,0.75)' }
+            { label: 'Profundo', data: dp, backgroundColor: '#3b82f6', maxBarThickness: 18 },
+            { label: 'REM', data: rem, backgroundColor: '#a855f7', maxBarThickness: 18 },
+            { label: 'Esencial', data: lt, backgroundColor: '#22d3ee', maxBarThickness: 18 },
+            { label: 'Despierto', data: aw, backgroundColor: 'rgba(245, 158, 11, 0.78)', borderRadius: { topLeft: 3, topRight: 3 }, maxBarThickness: 18 }
           ]
         },
-        options: {
-          ...commonOpts,
-          scales: {
-            x: { ...commonOpts.scales.x, stacked: true },
-            y: { ...commonOpts.scales.y, stacked: true, title: { display: true, text: 'Minutos', color: '#94a3b8' } }
-          }
-        }
+        options: opts
       });
     }
 
@@ -1175,6 +1603,9 @@
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        requestAnimationFrame(() => {
+          Object.values(charts).forEach(c => c.resize());
+        });
       });
     });
 
@@ -1209,8 +1640,11 @@
         const res = await fetch(API_URL, { cache: 'no-store' });
         const data = await res.json();
         if (data.N && data.N.length) {
-          const map = new Map(N.map(r => [r[0], r]));
-          data.N.forEach(r => map.set(r[0], r));
+          const map = new Map(N.map(r => [r[0], sanitizeRow(r)]));
+          data.N.forEach(r => {
+            const clean = sanitizeRow(r);
+            map.set(clean[0], clean);
+          });
           N = Array.from(map.values()).sort((a, b) => a[0] - b[0]);
           Object.assign(CA, data.CA || {});
 
