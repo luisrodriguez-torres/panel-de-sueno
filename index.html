@@ -1,1675 +1,1389 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Sueño" />
-  <meta name="theme-color" content="#090d16" />
-  <title>Panel de Sueño</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg: #090d16;
-      --bg-card: #111827;
-      --bg-card-2: #172033;
-      --border: rgba(148, 163, 184, 0.14);
-      --border-strong: rgba(148, 163, 184, 0.24);
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --dim: #64748b;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sueño">
+<title>Panel de sueño</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#f4f5fb;
+  --sf:#ffffff;
+  --sf2:#eef0f8;
+  --tx:#161a33;
+  --mut:#5b607f;
+  --bd:#dfe2f0;
+  --bl:#2f5fe0;
+  --or:#d9731a;
+  --pu:#7c3aed;
+  --gn:#10b981;
+  --rd:#e11d48;
+  --dp:#4b46c8;
+  --lt:#3b82f6;
+  --rm:#0ea5e9;
+  --gr:rgba(22,26,51,.09);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1124;
+    --sf:#171b36;
+    --sf2:#1f2547;
+    --tx:#eef0ff;
+    --mut:#9aa1c7;
+    --bd:#2a2f55;
+    --bl:#7aa2ff;
+    --or:#f5a05a;
+    --pu:#a78bfa;
+    --gn:#34d399;
+    --rd:#fb7185;
+    --dp:#6366f1;
+    --lt:#3b82f6;
+    --rm:#5bc8f5;
+    --gr:rgba(238,240,255,.10);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1124;
+  --sf:#171b36;
+  --sf2:#1f2547;
+  --tx:#eef0ff;
+  --mut:#9aa1c7;
+  --bd:#2a2f55;
+  --bl:#7aa2ff;
+  --or:#f5a05a;
+  --pu:#a78bfa;
+  --gn:#34d399;
+  --rd:#fb7185;
+  --dp:#6366f1;
+  --lt:#3b82f6;
+  --rm:#5bc8f5;
+  --gr:rgba(238,240,255,.10);
+  color-scheme:dark;
+}
 
-      /* Paleta coherente */
-      --cyan: #22d3ee;
-      --blue: #3b82f6;
-      --purple: #a855f7;
-      --magenta: #ec4899;
-      --green: #10b981;
-      --amber: #f59e0b;
-      --red: #f43f5e;
-      --radius: 16px;
-    }
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  max-width:100vw;
+  overflow-x:hidden;
+  background:var(--bg);
+  color:var(--tx);
+  font-family:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  line-height:1.48;
+  -webkit-font-smoothing:antialiased;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+main{
+  width:100%;
+  max-width:780px;
+  margin:0 auto;
+  padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(36px + env(safe-area-inset-bottom,0px));
+}
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+/* Header */
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:14px;
+}
+.title-col{min-width:0}
+h1{font-size:1.55rem;margin:0 0 3px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mut);font-size:.84rem;margin:0}
+.sync-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:4px;
+  font-size:.76rem;
+  color:var(--mut);
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+  background:var(--or);
+}
+.dot.ok{background:var(--gn)}
+.dot.err{background:var(--rd)}
 
-    html, body {
-      width: 100%;
-      max-width: 100vw;
-      overflow-x: hidden;
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-    }
+.btn-sync{
+  flex-shrink:0;
+  font:inherit;
+  font-size:.78rem;
+  font-weight:600;
+  color:var(--bl);
+  background:var(--sf);
+  border:1px solid var(--bd);
+  border-radius:10px;
+  padding:7px 11px;
+  cursor:pointer;
+}
+.btn-sync:active{transform:scale(.96)}
 
-    body {
-      background:
-        radial-gradient(circle at 85% 0%, rgba(59, 130, 246, 0.13), transparent 42%),
-        radial-gradient(circle at 12% 4%, rgba(168, 85, 247, 0.11), transparent 38%),
-        var(--bg);
-      min-height: 100vh;
-      padding: calc(env(safe-area-inset-top, 10px) + 8px) 12px calc(28px + env(safe-area-inset-bottom, 0px));
-    }
+/* Cards */
+.card{
+  background:var(--sf);
+  border:1px solid var(--bd);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+h2{font-size:1.02rem;margin:0 0 3px;font-weight:700;letter-spacing:-.01em}
+.cap{font-size:.82rem;color:var(--mut);margin:0 0 10px}
 
-    .container {
-      width: 100%;
-      max-width: 1020px;
-      margin: 0 auto;
-    }
+/* Controls */
+.rl2{display:block;font-size:.82rem;color:var(--mut);margin-top:8px}
+.rl2 span{float:right;color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
+.rl2 input{width:100%;accent-color:var(--bl);margin:5px 0 0;cursor:pointer}
+.ctrl-row{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+}
+.pr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pr-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:600;margin-right:2px}
+.pr button{
+  font:inherit;
+  font-size:.78rem;
+  color:var(--tx);
+  background:var(--bg);
+  border:1px solid var(--bd);
+  border-radius:999px;
+  padding:5px 11px;
+  cursor:pointer;
+}
+.pr button.on{
+  border-color:var(--bl);
+  background:var(--bl);
+  color:#fff;
+  font-weight:600;
+}
 
-    /* Header */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 4px 2px 14px;
-    }
+/* Sticky Tabs */
+.tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+  background:var(--sf);
+  border:1px solid var(--bd);
+  border-radius:13px;
+  padding:4px;
+  margin-bottom:12px;
+  position:sticky;
+  top:calc(env(safe-area-inset-top,0px) + 6px);
+  z-index:25;
+  box-shadow:0 4px 16px rgba(0,0,0,.06);
+}
+.tab-btn{
+  font:inherit;
+  font-size:.86rem;
+  font-weight:600;
+  color:var(--mut);
+  background:transparent;
+  border:none;
+  border-radius:9px;
+  padding:9px 4px;
+  cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.tab-btn.on{
+  background:var(--bl);
+  color:#fff;
+}
+.panel{display:none}
+.panel.on{display:block}
 
-    .title-wrap {
-      min-width: 0;
-    }
+/* KPIs */
+.k{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-bottom:12px;
+}
+@media (min-width:600px){
+  .k{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+.kc{
+  background:var(--sf);
+  border:1px solid var(--bd);
+  border-radius:12px;
+  padding:11px 12px;
+  min-width:0;
+}
+.kc b{
+  display:block;
+  font-size:1.38rem;
+  font-weight:800;
+  line-height:1.15;
+  color:var(--bl);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.kc span{display:block;font-size:.76rem;color:var(--mut);margin-top:3px}
 
-    .title-wrap h1 {
-      font-size: clamp(1.3rem, 4.5vw, 1.6rem);
-      font-weight: 700;
-      letter-spacing: -0.025em;
-      background: linear-gradient(90deg, #f8fafc 0%, #7dd3fc 55%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+/* Charts */
+.cw{
+  position:relative;
+  width:100%;
+  max-width:100%;
+  height:270px;
+  overflow:hidden;
+}
+.cw.sm{height:245px}
+.cw.lg-h{height:320px}
+.cw canvas{
+  display:block;
+  width:100% !important;
+  height:100% !important;
+}
+.lg{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px 12px;
+  margin:9px 0 0;
+  font-size:.76rem;
+  color:var(--mut);
+  align-items:center;
+}
+.lg span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0}
 
-    .sync-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 3px;
-      font-size: 0.74rem;
-      color: var(--muted);
-    }
+/* Calendar (Original style, mobile-safe) */
+.g{
+  display:grid;
+  grid-template-columns:38px repeat(7,minmax(0,1fr)) 34px;
+  gap:3px;
+  align-items:center;
+  width:100%;
+}
+.h{font-size:11px;color:var(--mut);text-align:center}
+.h.w{font-weight:700;color:var(--tx)}
+.rl{font-size:10px;color:var(--mut);text-align:right;padding-right:3px;white-space:nowrap}
+.c{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:34px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+  cursor:pointer;
+  border:2px solid transparent;
+  min-width:0;
+  transition:transform .1s,border-color .12s;
+}
+.c:active{transform:scale(.93)}
+.c.sel{border-color:var(--tx)}
+.e{border:1px dashed var(--bd);cursor:default}
+.av{font-size:11px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;color:var(--tx)}
 
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: var(--amber);
-      box-shadow: 0 0 8px var(--amber);
-    }
-    .dot.ok { background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .dot.err { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.day-detail{
+  margin-top:11px;
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:11px;
+  padding:10px 12px;
+  font-size:.82rem;
+}
+.dd-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:7px;
+}
+.dd-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+@media (min-width:560px){
+  .dd-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+.dd-item span{display:block;font-size:.7rem;color:var(--mut)}
+.dd-item strong{font-size:.88rem;font-variant-numeric:tabular-nums}
 
-    .btn-refresh {
-      flex-shrink: 0;
-      background: var(--bg-card-2);
-      color: var(--cyan);
-      border: 1px solid var(--border-strong);
-      border-radius: 11px;
-      padding: 8px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.12s ease, background 0.15s ease;
-    }
-    .btn-refresh:active { transform: scale(0.95); }
+/* Recommendations & Insights */
+.rec-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:9px;
+}
+@media (min-width:580px){
+  .rec-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+.rec-item{
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:11px;
+  padding:11px 12px;
+}
+.rec-item .lbl{font-size:.74rem;color:var(--mut)}
+.rec-item .val{font-size:1.18rem;font-weight:800;color:var(--bl);margin-top:3px;font-variant-numeric:tabular-nums}
+.rec-item .desc{font-size:.74rem;color:var(--mut);margin-top:3px}
 
-    /* Controls */
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      margin-bottom: 12px;
-    }
+.note-box{
+  margin-top:10px;
+  padding:9px 11px;
+  border-radius:10px;
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  font-size:.78rem;
+  color:var(--mut);
+}
+.note-box strong{color:var(--tx)}
 
-    .controls-top {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: space-between;
-      align-items: center;
-    }
+/* Tables */
+.tw{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mut);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:none}
 
-    .control-group {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 5px;
-    }
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+}
+.badge.good{background:rgba(16,185,129,.16);color:var(--gn)}
+.badge.warn{background:rgba(217,115,26,.16);color:var(--or)}
+.badge.bad{background:rgba(225,29,72,.16);color:var(--rd)}
 
-    .control-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--dim);
-      margin-right: 3px;
-      font-weight: 600;
-    }
+/* SVG Agenda */
+#gt{width:100%;overflow:hidden}
+#gt svg{display:block;width:100%;height:auto}
+svg text{font-family:inherit}
 
-    .pill {
-      background: var(--bg-card-2);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 6px 11px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .pill.active {
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
-    }
-
-    .range-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
-    }
-
-    .range-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.76rem;
-      color: var(--muted);
-    }
-
-    .range-text {
-      color: var(--text);
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .range-inputs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .range-inputs input[type="range"] {
-      width: 100%;
-      accent-color: var(--cyan);
-      cursor: pointer;
-    }
-
-    /* Sticky Tabs */
-    .tabs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 5px;
-      background: rgba(17, 24, 39, 0.9);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 5px;
-      margin-bottom: 14px;
-      position: sticky;
-      top: calc(env(safe-area-inset-top, 4px) + 4px);
-      z-index: 30;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-    }
-
-    .tab-btn {
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      border-radius: 10px;
-      padding: 9px 4px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .tab-btn.active {
-      background: var(--bg-card-2);
-      color: var(--cyan);
-      box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
-    }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* KPIs */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 9px;
-      margin-bottom: 12px;
-    }
-    @media (min-width: 640px) {
-      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    @media (min-width: 920px) {
-      .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-    }
-
-    .kpi {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      min-width: 0;
-    }
-    .kpi-label {
-      font-size: 0.68rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-    }
-    .kpi-val {
-      font-size: clamp(1.15rem, 3.8vw, 1.35rem);
-      font-weight: 700;
-      margin-top: 4px;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .kpi-sub {
-      font-size: 0.7rem;
-      color: var(--dim);
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Cards & Charts */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      margin-bottom: 12px;
-      width: 100%;
-      max-width: 100%;
-      overflow: hidden;
-    }
-
-    .card-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 6px 12px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .card h2 {
-      font-size: 0.96rem;
-      font-weight: 650;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
-
-    .card-sub {
-      font-size: 0.74rem;
-      color: var(--muted);
-    }
-
-    .chart-box {
-      position: relative;
-      width: 100%;
-      max-width: 100%;
-      height: 245px;
-      overflow: hidden;
-    }
-    .chart-box.tall { height: 280px; }
-    .chart-box canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    /* Calendar */
-    .cal-legend {
-      display: flex;
-      gap: 8px 10px;
-      flex-wrap: wrap;
-      font-size: 0.7rem;
-      color: var(--muted);
-    }
-    .cal-legend span { display: inline-flex; align-items: center; gap: 4px; }
-    .swatch { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
-
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 5px;
-      margin-top: 10px;
-      width: 100%;
-    }
-    .cal-dow {
-      text-align: center;
-      font-size: 0.68rem;
-      color: var(--dim);
-      font-weight: 600;
-      padding-bottom: 2px;
-    }
-    .cal-cell {
-      aspect-ratio: 1 / 1;
-      border-radius: 9px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(0.68rem, 2.5vw, 0.78rem);
-      font-weight: 600;
-      cursor: pointer;
-      position: relative;
-      border: 1.5px solid transparent;
-      min-width: 0;
-      transition: transform 0.1s ease, border-color 0.12s ease;
-    }
-    .cal-cell:active { transform: scale(0.93); }
-    .cal-cell.selected {
-      border-color: #fff;
-      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.45);
-    }
-    .cal-cell.empty { background: transparent; cursor: default; }
-    .cal-cell .hrs {
-      font-size: clamp(0.56rem, 2vw, 0.65rem);
-      opacity: 0.92;
-      font-weight: 500;
-      margin-top: 1px;
-    }
-    .cal-cell .month-tag {
-      position: absolute;
-      top: 2px;
-      left: 4px;
-      font-size: 0.52rem;
-      text-transform: uppercase;
-      opacity: 0.85;
-      letter-spacing: 0.02em;
-    }
-    .cal-cell .cause-dot {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #fff;
-    }
-
-    .day-detail {
-      margin-top: 12px;
-      background: var(--bg-card-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 0.82rem;
-    }
-    .day-detail-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-    @media (min-width: 600px) {
-      .day-detail-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-    .dd-item span { display: block; font-size: 0.68rem; color: var(--muted); }
-    .dd-item strong { font-size: 0.9rem; font-variant-numeric: tabular-nums; }
-    .dd-cause {
-      margin-top: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(236, 72, 153, 0.13);
-      border: 1px solid rgba(236, 72, 153, 0.32);
-      color: #fbcfe8;
-      font-size: 0.78rem;
-    }
-
-    /* Summary strip inside Cause Card */
-    .impact-strip {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .impact-pill {
-      background: var(--bg-card-2);
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      padding: 9px 11px;
-    }
-    .impact-pill .lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; }
-    .impact-pill .val { font-size: 0.96rem; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .impact-pill .sub { font-size: 0.7rem; color: var(--dim); }
-
-    /* Tables */
-    .table-wrap {
-      width: 100%;
-      max-width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-    }
-    th, td {
-      text-align: left;
-      padding: 8px 7px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-    th {
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    td.num, th.num {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-    tbody tr:last-child td { border-bottom: none; }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-    }
-    .badge.good { background: rgba(16, 185, 129, 0.16); color: #6ee7b7; }
-    .badge.warn { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
-    .badge.bad  { background: rgba(244, 63, 94, 0.16); color: #fda4af; }
-
-    /* Recommendations */
-    .rec-box {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 9px;
-    }
-    @media (min-width: 640px) {
-      .rec-box { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    .rec-item {
-      background: var(--bg-card-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-    }
-    .rec-item .label { font-size: 0.72rem; color: var(--muted); }
-    .rec-item .val { font-size: 1.15rem; font-weight: 700; margin-top: 3px; color: var(--cyan); font-variant-numeric: tabular-nums; }
-    .rec-item .desc { font-size: 0.74rem; color: var(--dim); margin-top: 4px; }
-
-    .insight-note {
-      margin-top: 10px;
-      padding: 9px 11px;
-      border-radius: 10px;
-      background: rgba(34, 211, 238, 0.08);
-      border: 1px solid rgba(34, 211, 238, 0.22);
-      font-size: 0.76rem;
-      color: #cbd5e1;
-    }
-    .insight-note strong { color: var(--cyan); }
-  </style>
+.ft{font-size:.8rem;color:var(--mut);margin-top:6px;text-align:center}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="title-wrap">
-        <h1>Panel de Sueño</h1>
-        <div class="sync-row">
-          <span class="dot" id="syncDot"></span>
-          <span id="syncText">Cargando datos locales…</span>
-        </div>
+<main>
+  <div class="top-bar">
+    <div class="title-col">
+      <h1>Panel de sueño</h1>
+      <p class="sub" id="sub"></p>
+      <div class="sync-row">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncText">Cargando datos locales…</span>
       </div>
-      <button class="btn-refresh" id="btnRefresh" type="button">↻ Sincronizar</button>
-    </header>
+    </div>
+    <button type="button" class="btn-sync" id="btnSync">↻ Sincronizar</button>
+  </div>
 
-    <section class="controls">
-      <div class="controls-top">
-        <div class="control-group" id="presetGroup">
-          <span class="control-label">Rango</span>
-          <button class="pill active" data-preset="all">Todo</button>
-          <button class="pill" data-preset="job">Trabajo</button>
-          <button class="pill" data-preset="4w">4 sem</button>
-          <button class="pill" data-preset="2w">2 sem</button>
-        </div>
-        <div class="control-group" id="goalGroup">
-          <span class="control-label">Meta</span>
-          <button class="pill" data-goal="420">7 h</button>
-          <button class="pill active" data-goal="450">7,5 h</button>
-          <button class="pill" data-goal="480">8 h</button>
-        </div>
+  <section class="card" aria-labelledby="rgt">
+    <h2 id="rgt">Rango de fechas y meta</h2>
+    <p class="cap" id="rgl"></p>
+    <label class="rl2">Desde <span id="fl"></span><input type="range" id="fs" min="1" value="13"></label>
+    <label class="rl2">Hasta <span id="tl"></span><input type="range" id="ts" min="1" value="55"></label>
+    <div class="ctrl-row">
+      <div class="pr" id="presetBar">
+        <button type="button" data-p="all">Todo</button>
+        <button type="button" data-p="job">Desde el 13 oct</button>
+        <button type="button" data-p="4w">4 sem</button>
+        <button type="button" data-p="2w">2 sem</button>
       </div>
-      <div class="range-wrap">
-        <div class="range-header">
-          <span>Periodo visible</span>
-          <span class="range-text" id="rangeLabel">1 oct – 24 nov</span>
-        </div>
-        <div class="range-inputs">
-          <input type="range" id="fromSlider" min="1" max="55" value="1" aria-label="Desde" />
-          <input type="range" id="toSlider" min="1" max="55" value="55" aria-label="Hasta" />
-        </div>
+      <div class="pr" id="goalBar">
+        <span class="pr-lbl">Meta</span>
+        <button type="button" data-g="420">7 h</button>
+        <button type="button" data-g="450">7,5 h</button>
+        <button type="button" data-g="480" class="on">8 h</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab-btn on" data-tab="resumen">Resumen</button>
+    <button type="button" class="tab-btn" data-tab="horarios">Horarios</button>
+    <button type="button" class="tab-btn" data-tab="fases">Fases</button>
+  </nav>
+
+  <!-- ==================== TAB 1: RESUMEN ==================== -->
+  <div class="panel on" id="panel-resumen">
+    <div class="k" id="k"></div>
+
+    <section class="card">
+      <h2>Calendario de noches</h2>
+      <p class="cap">Horas dormidas según el día en que despertaste. Toca cualquier día para ver su detalle.</p>
+      <div id="hm"></div>
+      <div class="lg" id="hl"></div>
+      <div class="day-detail" id="dayDetail"></div>
+    </section>
+
+    <section class="card">
+      <h2>Promedio móvil de horas dormidas</h2>
+      <p class="cap" id="c8"></p>
+      <div class="cw"><canvas id="mv" role="img" aria-label="Horas dormidas por noche y promedio móvil de 7 noches"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="border-radius:50%;background:var(--bl)"></i>Noche de semana</span>
+        <span><i class="sw" style="border-radius:50%;background:var(--or)"></i>Fin de semana</span>
+        <span><i class="sw" style="background:var(--pu)"></i>Promedio móvil 7 noches</span>
+        <span id="lgMeta1">Discontinua: meta 8 h</span>
       </div>
     </section>
 
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="resumen">Resumen</button>
-      <button class="tab-btn" data-tab="horarios">Horarios</button>
-      <button class="tab-btn" data-tab="fases">Fases</button>
-    </nav>
-
-    <!-- ==================== TAB 1: RESUMEN ==================== -->
-    <div class="tab-panel active" id="tab-resumen">
-      <div class="kpi-grid" id="kpiGrid"></div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Duración nocturna y promedio móvil (7d)</h2>
-          <span class="card-sub" id="durMetaSub">Meta: 7,5 h</span>
-        </div>
-        <div class="chart-box"><canvas id="chartDur"></canvas></div>
+    <section class="card">
+      <h2>Deuda acumulada de sueño (últimas 7 noches)</h2>
+      <p class="cap" id="cDebt"></p>
+      <div class="cw sm"><canvas id="debt" role="img" aria-label="Deuda acumulada de sueño de los últimos 7 días"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="background:var(--rd)"></i>Balance móvil 7 días frente a tu meta</span>
+        <span>Discontinua: equilibrio (0 h)</span>
       </div>
+    </section>
 
-      <div class="card">
-        <div class="card-head">
-          <h2>Calendario de sueño</h2>
-          <div class="cal-legend">
-            <span><i class="swatch" style="background:#10b981"></i> ≥ Meta</span>
-            <span><i class="swatch" style="background:#3b82f6"></i> -30m</span>
-            <span><i class="swatch" style="background:#f59e0b"></i> -1h</span>
-            <span><i class="swatch" style="background:#f43f5e"></i> Crítico</span>
-            <span><i class="swatch" style="background:#fff;border-radius:50%"></i> Nota</span>
-          </div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-        <div class="day-detail" id="dayDetail">Toca cualquier día del calendario para ver el detalle de esa noche.</div>
-      </div>
+    <section class="card">
+      <h2>Tu semana tipo</h2>
+      <p class="cap">Promedio de horas según el día en que despiertas, en el rango elegido.</p>
+      <div class="cw sm"><canvas id="dw" role="img" aria-label="Horas promedio por día de la semana"></canvas></div>
+    </section>
 
-      <div class="card">
-        <div class="card-head">
-          <h2>Deuda acumulada de sueño (7 días)</h2>
-          <span class="card-sub">Balance móvil frente a tu meta (0h = equilibrado)</span>
-        </div>
-        <div class="chart-box"><canvas id="chartDebt"></canvas></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Impacto de causas registradas</h2>
-          <span class="card-sub">Noches con factores externos vs. noches sin notas</span>
-        </div>
-        <div class="impact-strip" id="impactStrip"></div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Causa / Nota</th>
-                <th class="num">Duración</th>
-                <th class="num">REM</th>
-                <th class="num">Prof.</th>
-                <th class="num">Δ Meta</th>
-              </tr>
-            </thead>
-            <tbody id="causeTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Evolución semanal</h2>
-          <span class="card-sub">Promedios por semana calendario</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Semana</th>
-                <th class="num">Noches</th>
-                <th class="num">Prom.</th>
-                <th class="num">Prof.</th>
-                <th class="num">REM</th>
-                <th class="num">Efic.</th>
-              </tr>
-            </thead>
-            <tbody id="weeklyTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 2: HORARIOS ==================== -->
-    <div class="tab-panel" id="tab-horarios">
-      <div class="card">
-        <div class="card-head">
-          <h2>Recomendación horaria</h2>
-          <span class="card-sub">Calculada según tu meta actual</span>
-        </div>
-        <div class="rec-box" id="recBox"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Ventana de sueño (acostarse → despertar)</h2>
-          <span class="card-sub">Cyan: antes de 01:00 · Magenta: madrugada</span>
-        </div>
-        <div class="chart-box tall"><canvas id="chartSchedule"></canvas></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Hora de acostarse vs. Fase REM</h2>
-          <span class="card-sub">Cómo impacta trasnochar en tu recuperación REM</span>
-        </div>
-        <div class="chart-box"><canvas id="chartBedRem"></canvas></div>
-        <div class="insight-note" id="bedRemInsight"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Semana vs. Fin de semana y Madrugadas</h2>
-          <span class="card-sub">Comparación de horarios y calidad</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Grupo</th>
-                <th class="num">Noches</th>
-                <th class="num">Acost.</th>
-                <th class="num">Desp.</th>
-                <th class="num">Durac.</th>
-                <th class="num">REM</th>
-              </tr>
-            </thead>
-            <tbody id="splitTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 3: FASES ==================== -->
-    <div class="tab-panel" id="tab-fases">
-      <div class="card">
-        <div class="card-head">
-          <h2>Sueño Profundo vs. REM (minutos)</h2>
-          <span class="card-sub">Referencia: Profundo ≥ 60m · REM ≥ 90m</span>
-        </div>
-        <div class="chart-box"><canvas id="chartStages"></canvas></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Fases según duración de la noche</h2>
-          <span class="card-sub">Promedio de Profundo y REM por tramo de horas dormidas</span>
-        </div>
-        <div class="chart-box"><canvas id="chartStagesByDur"></canvas></div>
-        <div class="insight-note">
-          <strong>Patrón fisiológico:</strong> el sueño profundo se mantiene estable incluso en noches cortas, mientras que el <strong>REM</strong> crece con fuerza a partir de las <strong>6,5–7 horas</strong>.
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Eficiencia de sueño (%) y vigilia nocturna</h2>
-          <span class="card-sub">Eficiencia = Sueño / (Sueño + Despierto)</span>
-        </div>
-        <div class="chart-box"><canvas id="chartEff"></canvas></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Distribución completa de fases por noche</h2>
-          <span class="card-sub">Profundo, REM, Esencial/Ligero y Despierto</span>
-        </div>
-        <div class="chart-box tall"><canvas id="chartStacked"></canvas></div>
-      </div>
-    </div>
+    <section class="card">
+      <h2>Evolución semanal</h2>
+      <p class="cap">Promedio de lunes a viernes y de sábado y domingo, por semana (lunes a domingo).</p>
+      <div class="cw sm"><canvas id="wk" role="img" aria-label="Horas promedio por semana, entre semana y fin de semana"></canvas></div>
+    </section>
   </div>
 
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwnjDOCD45RWwcZLYfqFcOBemTE5U9deozlqssgtEJDnm-2yKuFcg-aocUBcjSXLkIm-A/exec';
-    const BASE_DATE = new Date(2026, 9, 1); // 1 oct 2026 -> d = 1
+  <!-- ==================== TAB 2: HORARIOS ==================== -->
+  <div class="panel" id="panel-horarios">
+    <section class="card">
+      <h2>Recomendación horaria</h2>
+      <p class="cap">Ajustada automáticamente a tu meta y a tu hora habitual de despertar entre semana.</p>
+      <div class="rec-grid" id="recGrid"></div>
+    </section>
 
-    // [d, bed, wake, dur, aw, dp, rem]
-    let N = [
-      [1,5.33,8.85,198,11,42,61],
-      [2,0.42,8.08,452,3,53,125],
-      [3,4.75,9.83,296,5,59,95],
-      [4,4,8,210,28,45,34],
-      [5,3.25,9.5,355,15,59,70],
-      [6,3.83,9.58,334,8,44,78],
-      [7,2.17,7.5,288,23,72,18],
-      [8,4.42,7.42,178,3,null,null],
-      [9,0.83,8,423,1,38,136],
-      [10,3.17,9.45,364,9,56,82],
-      [11,2.58,8.58,347,7,40,125],
-      [12,0.33,8.75,484,15,63,137],
-      [13,0.75,7.52,396,10,36,113],
-      [14,-1.233,6.98,479,14,48,121],
-      [15,-0.95,7.02,474,4,69,145],
-      [16,1.883,6.97,294,11,51,62],
-      [17,3.733,9.23,319,11,51,88],
-      [18,4.983,9.02,237,5,36,71],
-      [19,-0.917,7,464,11,62,119],
-      [20,1.683,7,311,7,61,103],
-      [21,-1.1,7.08,474,13,45,171],
-      [22,-0.35,7.08,438,4,69,96],
-      [23,-1.35,7,465,34,44,99],
-      [24,3.35,9.23,356,3,38,48],
-      [25,3.817,9,306,4,57,94],
-      [26,0.083,7.08,412,4,53,130],
-      [27,-0.133,6.92,411,12,47,144],
-      [28,-1.117,7.08,473,15,56,138],
-      [29,-1.617,7.08,496,22,64,175],
-      [30,-1.2,4.52,318,25,33,71],
-      [31,4.017,8.67,262,13,67,56],
-      [32,4.433,9.05,258,17,52,42],
-      [33,-0.617,7.02,448,9,79,123],
-      [34,-0.367,7.02,421,21,80,106],
-      [35,2.1,7,286,9,45,83],
-      [36,1.5,7.03,328,3,64,103],
-      [37,-0.5,7.02,434,17,29,138],
-      [38,4.083,8,227,9,40,57],
-      [39,3.367,9,330,8,54,68],
-      [40,-1.567,7,489,26,58,145],
-      [41,-1.2,6.9,337,149,58,62],
-      [42,3.583,7,193,12,54,33],
-      [43,-0.4,7.02,430,15,74,145],
-      [44,0.683,7.02,363,14,55,93],
-      [45,3.75,9.13,304,19,66,93],
-      [46,4.267,9.22,286,11,61,41],
-      [47,0.1,7.03,401,15,88,86],
-      [48,0.567,6.97,379,5,68,91],
-      [49,-0.283,6.97,430,5,63,123],
-      [50,-1.05,6.98,464,18,59,145],
-      [51,0.133,6.93,407,2,51,101],
-      [52,3.55,9.9,375,7,60,105],
-      [53,3.65,8.967,302,17,87,44],
-      [54,-1.383,6.317,444,18,52,100],
-      [55,0.322,6.997,401,2,76,113]
-    ];
+    <section class="card">
+      <h2>Hora de dormirte vs horas dormidas</h2>
+      <p class="cap" id="c2"></p>
+      <div class="cw"><canvas id="sc" role="img" aria-label="Dispersión de hora de dormirte contra horas dormidas con tendencia"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="border-radius:50%;background:var(--bl)"></i>Semana</span>
+        <span><i class="sw" style="background:var(--or)"></i>Fin de semana</span>
+        <span id="lgMeta2">Línea: tendencia de semana · discontinua: meta 8 h</span>
+      </div>
+    </section>
 
-    let CA = {
-      30: 'calor y estrés',
-      35: 'cumpleaños, vino y teléfono',
-      36: 'cannabis',
-      41: 'televisor',
-      42: 'juego de trenes',
-      44: 'calor',
-      45: 'despertar libre, sin alarma',
-      46: 'lavadora y proyecto en el teléfono',
-      47: 'marihuana, vino y pizza',
-      48: 'losa pendiente y teléfono',
-      49: 'reunión social, te acostaste enseguida',
-      51: 'Miss Venezuela (evento en la TV)',
-      52: 'despertar libre, sin alarma',
-      54: 'ruido externo, despertar temprano'
-    };
+    <section class="card">
+      <h2>Agenda (últimas 28 noches del rango)</h2>
+      <p class="cap">Cada barra va de cuando empieza tu sueño hasta que despiertas. Línea discontinua: alarma de las 7:00.</p>
+      <div id="gt"></div>
+      <div class="lg">
+        <span><i class="sw" style="background:var(--bl)"></i>Lun–vie</span>
+        <span><i class="sw" style="background:var(--or)"></i>Sáb–dom</span>
+      </div>
+    </section>
 
-    let GOAL = 450; // 7.5 h
-    let FROM = 1;
-    let TO = N[N.length - 1][0];
-    let SELECTED_DAY = TO;
-    const PR = {
-      all: [1, TO],
-      job: [13, TO],
-      '4w': [Math.max(1, TO - 27), TO],
-      '2w': [Math.max(1, TO - 13), TO]
-    };
+    <section class="card">
+      <h2>Hora promedio de dormir</h2>
+      <p class="cap">A qué hora te duermes según el día en que empieza la noche (“Dom” es la noche del domingo). La barra muestra el rango, el punto el promedio y la línea la mediana. Banda verde: 22:30–23:45.</p>
+      <div class="cw lg-h"><canvas id="bd" role="img" aria-label="Hora promedio de dormir por día de la semana, con rango y mediana"></canvas></div>
+    </section>
 
-    const fs = document.getElementById('fromSlider');
-    const ts = document.getElementById('toSlider');
-    const charts = {};
+    <section class="card">
+      <h2>Hora de dormirte vs fase REM</h2>
+      <p class="cap" id="cBedRem"></p>
+      <div class="cw sm"><canvas id="brem" role="img" aria-label="Dispersión de hora de inicio del sueño contra minutos de fase REM"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="border-radius:50%;background:var(--bl)"></i>Antes de 01:00</span>
+        <span><i class="sw" style="border-radius:50%;background:var(--or)"></i>Después de 01:00</span>
+      </div>
+    </section>
 
-    const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-    const DOWS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    <section class="card">
+      <h2>Comparativa de horarios</h2>
+      <p class="cap">Resumen de horarios y recuperación según el tipo de noche.</p>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Grupo</th>
+              <th class="num">Noches</th>
+              <th class="num">Inicio</th>
+              <th class="num">Desp.</th>
+              <th class="num">Duración</th>
+              <th class="num">REM</th>
+            </tr>
+          </thead>
+          <tbody id="splitBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 
-    function sanitizeRow(r) {
-      const row = [...r];
-      // Blindaje por si algún bed llegara corrido -24h
-      if (typeof row[1] === 'number' && row[1] < -12) row[1] = Number((row[1] + 24).toFixed(3));
-      return row;
+  <!-- ==================== TAB 3: FASES ==================== -->
+  <div class="panel" id="panel-fases">
+    <section class="card">
+      <h2>Evolución del sueño profundo</h2>
+      <p class="cap" id="c7"></p>
+      <div class="cw"><canvas id="dpc" role="img" aria-label="Minutos de sueño profundo por noche con promedio móvil de 7 noches"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="border-radius:50%;background:var(--bl)"></i>Noche de semana</span>
+        <span><i class="sw" style="border-radius:50%;background:var(--or)"></i>Fin de semana</span>
+        <span><i class="sw" style="background:var(--pu)"></i>Promedio móvil 7 noches</span>
+        <span>Discontinua: promedio del rango</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Evolución de la fase REM</h2>
+      <p class="cap" id="cRem"></p>
+      <div class="cw"><canvas id="rmc" role="img" aria-label="Minutos de fase REM por noche con promedio móvil de 7 noches"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="border-radius:50%;background:var(--bl)"></i>Noche de semana</span>
+        <span><i class="sw" style="border-radius:50%;background:var(--or)"></i>Fin de semana</span>
+        <span><i class="sw" style="background:var(--rm)"></i>Promedio móvil 7 noches</span>
+        <span>Discontinua: referencia 90 min</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Qué pierdes cuando duermes poco</h2>
+      <p class="cap">Minutos promedio en cada fase según la duración de la noche. Las fases son estimaciones del reloj.</p>
+      <div class="cw lg-h"><canvas id="st" role="img" aria-label="Minutos por fase según la duración de la noche"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="background:var(--dp)"></i>Profundo</span>
+        <span><i class="sw" style="background:var(--lt)"></i>Ligero</span>
+        <span><i class="sw" style="background:var(--rm)"></i>REM</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Eficiencia de sueño y vigilia nocturna</h2>
+      <p class="cap">Eficiencia = tiempo dormido / (tiempo dormido + tiempo despierto).</p>
+      <div class="cw sm"><canvas id="eff" role="img" aria-label="Eficiencia de sueño y minutos despierto por noche"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="background:var(--gn)"></i>Eficiencia (%)</span>
+        <span><i class="sw" style="background:var(--or)"></i>Despierto (min)</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Distribución de fases por noche</h2>
+      <p class="cap">Desglose completo de cada noche registrada en el rango.</p>
+      <div class="cw lg-h"><canvas id="stk" role="img" aria-label="Distribución diaria de fases del sueño"></canvas></div>
+      <div class="lg">
+        <span><i class="sw" style="background:var(--dp)"></i>Profundo</span>
+        <span><i class="sw" style="background:var(--lt)"></i>Ligero</span>
+        <span><i class="sw" style="background:var(--rm)"></i>REM</span>
+        <span><i class="sw" style="background:var(--or)"></i>Despierto</span>
+      </div>
+    </section>
+  </div>
+
+  <p class="ft">Sincronizado automáticamente desde Apple Watch vía Google Sheets. Todos los gráficos se recalculan al vuelo según el rango y la meta.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwnjDOCD45RWwcZLYfqFcOBemTE5U9deozlqssgtEJDnm-2yKuFcg-aocUBcjSXLkIm-A/exec';
+const BASE_DATE = new Date(2026, 9, 1); // 1 oct 2026 -> d = 1
+const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DOW_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+// [d, inicio sueño (h tras 00:00), despertar, minutos dormidos, vigilia, profundo, REM]
+let N = [
+  [1,5.33,8.85,198,11,42,61],[2,0.42,8.08,452,3,53,125],[3,4.75,9.83,296,5,59,95],[4,4,8,210,28,45,34],
+  [5,3.25,9.5,355,15,59,70],[6,3.83,9.58,334,8,44,78],[7,2.17,7.5,288,23,72,18],[8,4.42,7.42,178,3,null,null],
+  [9,0.83,8,423,1,38,136],[10,3.17,9.45,364,9,56,82],[11,2.58,8.58,347,7,40,125],[12,0.33,8.75,484,15,63,137],
+  [13,0.75,7.52,396,10,36,113],[14,-1.233,6.98,479,14,48,121],[15,-0.95,7.02,474,4,69,145],[16,1.883,6.97,294,11,51,62],
+  [17,3.733,9.23,319,11,51,88],[18,4.983,9.02,237,5,36,71],[19,-0.917,7,464,11,62,119],[20,1.683,7,311,7,61,103],
+  [21,-1.1,7.08,474,13,45,171],[22,-0.35,7.08,438,4,69,96],[23,-1.35,7,465,34,44,99],[24,3.35,9.23,356,3,38,48],
+  [25,3.817,9,306,4,57,94],[26,0.083,7.08,412,4,53,130],[27,-0.133,6.92,411,12,47,144],[28,-1.117,7.08,473,15,56,138],
+  [29,-1.617,7.08,496,22,64,175],[30,-1.2,4.52,318,25,33,71],[31,4.017,8.67,262,13,67,56],[32,4.433,9.05,258,17,52,42],
+  [33,-0.617,7.02,448,9,79,123],[34,-0.367,7.02,421,21,80,106],[35,2.1,7,286,9,45,83],[36,1.5,7.03,328,3,64,103],
+  [37,-0.5,7.02,434,17,29,138],[38,4.083,8,227,9,40,57],[39,3.367,9,330,8,54,68],[40,-1.567,7,489,26,58,145],
+  [41,-1.2,6.9,337,149,58,62],[42,3.583,7,193,12,54,33],[43,-0.4,7.02,430,15,74,145],[44,0.683,7.02,363,14,55,93],
+  [45,3.75,9.13,304,19,66,93],[46,4.267,9.22,286,11,61,41],[47,0.1,7.03,401,15,88,86],[48,0.567,6.97,379,5,68,91],
+  [49,-0.283,6.97,430,5,63,123],[50,-1.05,6.98,464,18,59,145],[51,0.133,6.93,407,2,51,101],[52,3.55,9.9,375,7,60,105],
+  [53,3.65,8.967,302,17,87,44],[54,-1.383,6.317,444,18,52,100],[55,0.322,6.997,401,2,76,113]
+];
+
+let GOAL = 480; // minutos (8 h por defecto como el original)
+let FROM = 13;
+let TO = N[N.length - 1][0];
+let SEL = TO;
+let CH = [];
+const SP = 13;
+
+function dToDate(d){
+  const x = new Date(BASE_DATE);
+  x.setDate(x.getDate() + (d - 1));
+  return x;
+}
+function dt(d){
+  const x = dToDate(d);
+  return x.getDate() + ' ' + MONTHS[x.getMonth()];
+}
+function dtFull(d){
+  const x = dToDate(d);
+  const wd = (x.getDay() + 6) % 7;
+  return DOW_NAMES[wd] + ' ' + x.getDate() + ' ' + MONTHS[x.getMonth()];
+}
+function f1(h){ return h.toFixed(1).replace('.', ','); }
+function hm(m){
+  if (m == null || isNaN(m)) return '–';
+  const sign = m < 0 ? '−' : '';
+  const a = Math.round(Math.abs(m));
+  return sign + Math.floor(a / 60) + ' h ' + String(a % 60).padStart(2, '0') + ' min';
+}
+function hmShort(m){
+  if (m == null || isNaN(m)) return '–';
+  const sign = m < 0 ? '−' : '';
+  const a = Math.round(Math.abs(m));
+  return sign + Math.floor(a / 60) + 'h ' + String(a % 60).padStart(2, '0') + 'm';
+}
+function clock(v){
+  if (v == null || isNaN(v)) return '–';
+  const t = Math.round((((v % 24) + 24) % 24) * 60);
+  return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+function avg(a){
+  const v = a.filter(x => x != null && !isNaN(x));
+  return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null;
+}
+function cv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function sanitizeRow(r){
+  const row = [...r];
+  if (typeof row[1] === 'number' && row[1] < -12) row[1] = Number((row[1] + 24).toFixed(3));
+  return row;
+}
+
+function getPresets(){
+  const last = N[N.length - 1][0];
+  return {
+    all: [1, last],
+    job: [Math.min(13, last), last],
+    '4w': [Math.max(1, last - 27), last],
+    '2w': [Math.max(1, last - 13), last]
+  };
+}
+
+function run(){
+  const AR = N.map(r => {
+    const x = dToDate(r[0]);
+    return { d:r[0], bed:r[1], wake:r[2], dur:r[3], aw:r[4], dp:r[5], rem:r[6], wd:(x.getDay()+6)%7 };
+  });
+  const R = AR.filter(r => r.d >= FROM && r.d <= TO);
+  if (!R.length) return;
+  if (SEL < FROM || SEL > TO) SEL = R[R.length - 1].d;
+
+  const goalH = GOAL / 60;
+  const goalLbl = goalH % 1 === 0 ? goalH + ' h' : f1(goalH) + ' h';
+
+  // Regresión lineal en noches de semana del rango
+  const wkp = R.filter(r => r.wd <= 4);
+  const mx = avg(wkp.map(r => r.bed)) || 0;
+  const my = avg(wkp.map(r => r.dur / 60)) || 7;
+  const sxy = wkp.reduce((a, r) => a + (r.bed - mx) * (r.dur / 60 - my), 0);
+  const sxx = wkp.reduce((a, r) => a + (r.bed - mx) ** 2, 0) || 1;
+  const syy = wkp.reduce((a, r) => a + (r.dur / 60 - my) ** 2, 0) || 1;
+  const m = sxy / sxx;
+  const b = my - m * mx;
+  const rr = sxy / Math.sqrt(sxx * syy);
+
+  const lastDate = dToDate(AR[AR.length - 1].d);
+  document.getElementById('sub').textContent =
+    'Datos hasta el ' + dt(AR[AR.length - 1].d) + ' ' + lastDate.getFullYear() + ' · ' + R.length + ' noches en el rango · Apple Watch';
+
+  // KPIs (4 originales + 2 clave: Eficiencia y Deuda 7d)
+  const l7 = avg(R.slice(-7).map(r => r.dur));
+  const ok = R.filter(r => r.dur >= GOAL).length;
+  const pm = R.filter(r => r.wd <= 4);
+  const pmOk = pm.filter(r => r.bed < 0).length;
+  const effAvg = avg(R.map(r => r.dur / (r.dur + r.aw) * 100));
+  const debt7 = R.slice(-7).reduce((s, r) => s + (r.dur - GOAL), 0);
+
+  document.getElementById('k').innerHTML = [
+    [hmShort(l7), 'Promedio últimas 7 noches', 'var(--bl)'],
+    [Math.round(ok / R.length * 100) + '%', 'Noches ≥ ' + goalLbl + ' (' + ok + '/' + R.length + ')', 'var(--gn)'],
+    [pmOk + ' de ' + pm.length, 'Dormido antes de 00:00 (L–V)', 'var(--bl)'],
+    [(m < 0 ? '−' : '+') + Math.round(Math.abs(m) * 60) + ' min', 'Cambio por hora más tarde (L–V)', 'var(--or)'],
+    [effAvg.toFixed(1).replace('.', ',') + '%', 'Eficiencia promedio', 'var(--gn)'],
+    [(debt7 >= 0 ? '+' : '') + hmShort(debt7), 'Balance 7 noches vs ' + goalLbl, debt7 >= 0 ? 'var(--gn)' : 'var(--rd)']
+  ].map(x => '<div class="kc"><b style="color:' + x[2] + '">' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
+
+  document.getElementById('lgMeta1').textContent = 'Discontinua: meta ' + goalLbl;
+  document.getElementById('lgMeta2').textContent = 'Línea: tendencia de semana · discontinua: meta ' + goalLbl;
+  document.getElementById('c2').textContent =
+    'Entre semana, por cada hora más tarde pierdes ~' + Math.round(Math.abs(m) * 60) +
+    ' min (r = ' + rr.toFixed(2).replace('.', ',') + '). Para llegar a ' + goalLbl +
+    ' tendrías que dormirte hacia las ' + clock((goalH - b) / m) + '.';
+
+  // Calendario (Original interactivo al toque)
+  const BG = ['#c2410c','#f97316','#fdba74','#93c5fd','#3b82f6','#1d4ed8'];
+  const FG = ['#fff','#1a1a1a','#1a1a1a','#0b1b3a','#fff','#fff'];
+  const bin = h => h < 4 ? 0 : h < 5 ? 1 : h < 6 ? 2 : h < 7 ? 3 : h < 8 ? 4 : 5;
+  const maxD = AR[AR.length - 1].d;
+  const byD = new Map(AR.map(r => [r.d, r]));
+  const startOffset = AR[0].wd; // Oct 1 = Thu (3)
+  const totalCells = startOffset + maxD;
+  const nr = Math.ceil(totalCells / 7);
+
+  let s = '<div class="g"><div></div>' +
+    ['L','M','X','J','V','S','D'].map((d, i) => '<div class="h' + (i > 4 ? ' w' : '') + '">' + d + '</div>').join('') +
+    '<div class="h">Prom.</div>';
+
+  for (let r = 0; r < nr; r++){
+    const rowFirstD = r * 7 - startOffset + 1;
+    const rowLabel = rowFirstD >= 1 ? dt(rowFirstD) : dt(1 - startOffset);
+    s += '<div class="rl">' + rowLabel + '</div>';
+    let t = [];
+    for (let c = 0; c < 7; c++){
+      const dayNum = r * 7 + c - startOffset + 1;
+      const q = byD.get(dayNum);
+      if (!q){ s += '<div class="c e"></div>'; continue; }
+      const h = q.dur / 60, k = bin(h);
+      const inRange = q.d >= FROM && q.d <= TO;
+      if (inRange) t.push(h);
+      const selCls = q.d === SEL ? ' sel' : '';
+      s += '<div class="c' + selCls + '" data-d="' + q.d + '" title="' + dtFull(q.d) + ' · ' + f1(h) + ' h" style="background:' + BG[k] + ';color:' + FG[k] + ';opacity:' + (inRange ? 1 : 0.22) + '">' + f1(h) + '</div>';
     }
+    s += '<div class="av">' + (t.length ? f1(avg(t)) : '–') + '</div>';
+  }
+  document.getElementById('hm').innerHTML = s + '</div>';
+  document.getElementById('hl').innerHTML =
+    ['< 4 h','4–5','5–6','6–7','7–8','≥ 8 h'].map((t, i) => '<span><i class="sw" style="background:' + BG[i] + '"></i>' + t + '</span>').join('');
 
-    function dToDate(d) {
-      const dt = new Date(BASE_DATE);
-      dt.setDate(dt.getDate() + (d - 1));
-      return dt;
-    }
-    function fmtShortDate(d) {
-      const dt = dToDate(d);
-      return `${dt.getDate()} ${MONTHS[dt.getMonth()]}`;
-    }
-    function fmtFullDate(d) {
-      const dt = dToDate(d);
-      return `${DOWS[dt.getDay()]} ${dt.getDate()} ${MONTHS[dt.getMonth()]}`;
-    }
-    function fmtHM(mins) {
-      if (mins == null || isNaN(mins)) return '—';
-      const sign = mins < 0 ? '-' : '';
-      const a = Math.round(Math.abs(mins));
-      const h = Math.floor(a / 60);
-      const m = a % 60;
-      return `${sign}${h}h ${String(m).padStart(2, '0')}m`;
-    }
-    function fmtClock(decH) {
-      if (decH == null || isNaN(decH)) return '—';
-      let h = ((decH % 24) + 24) % 24;
-      const hh = Math.floor(h);
-      const mm = Math.round((h - hh) * 60);
-      if (mm === 60) return `${String((hh + 1) % 24).padStart(2, '0')}:00`;
-      return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-    }
-    function avg(arr) {
-      const v = arr.filter(x => x != null && !isNaN(x));
-      return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
-    }
-    function getFiltered() {
-      return N.filter(r => r[0] >= FROM && r[0] <= TO);
-    }
-
-    function setR(a, b) {
-      FROM = Math.max(1, Math.min(a, b));
-      TO = Math.max(a, b);
-      fs.value = FROM;
-      ts.value = TO;
-      document.getElementById('rangeLabel').textContent = `${fmtShortDate(FROM)} – ${fmtShortDate(TO)}`;
-      if (SELECTED_DAY < FROM || SELECTED_DAY > TO) SELECTED_DAY = TO;
-      renderAll();
-    }
-
-    function renderAll() {
-      const rows = getFiltered();
-      if (!rows.length) return;
-      renderKPIs(rows);
-      renderDurChart(rows);
-      renderCalendar(rows);
-      renderDebtChart(rows);
-      renderCauseTable(rows);
-      renderWeeklyTable(rows);
-      renderRecommendations(rows);
-      renderScheduleChart(rows);
-      renderBedRemChart(rows);
-      renderSplitTable(rows);
-      renderStagesChart(rows);
-      renderStagesByDurChart(rows);
-      renderEffChart(rows);
-      renderStackedChart(rows);
-    }
-
-    function baseChartOptions(extra = {}) {
-      return {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: { top: 8, right: 8, bottom: 4, left: 2 }
-        },
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: {
-              color: '#94a3b8',
-              boxWidth: 10,
-              boxHeight: 10,
-              usePointStyle: true,
-              pointStyle: 'circle',
-              padding: 10,
-              font: { size: 11 }
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            borderColor: 'rgba(148, 163, 184, 0.25)',
-            borderWidth: 1,
-            titleColor: '#f8fafc',
-            bodyColor: '#cbd5e1',
-            padding: 9,
-            cornerRadius: 8
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: '#94a3b8',
-              maxRotation: 0,
-              autoSkip: true,
-              maxTicksLimit: 6,
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(148, 163, 184, 0.07)' }
-          },
-          y: {
-            ticks: { color: '#94a3b8', font: { size: 10 } },
-            grid: { color: 'rgba(148, 163, 184, 0.08)' }
-          }
-        },
-        ...extra
-      };
-    }
-
-    function upsertChart(id, cfg) {
-      if (charts[id]) charts[id].destroy();
-      const ctx = document.getElementById(id).getContext('2d');
-      charts[id] = new Chart(ctx, cfg);
-    }
-
-    function renderKPIs(rows) {
-      const avgDur = avg(rows.map(r => r[3]));
-      const avgDp = avg(rows.map(r => r[5]));
-      const avgRem = avg(rows.map(r => r[6]));
-      const avgEff = avg(rows.map(r => r[3] / (r[3] + r[4]) * 100));
-      const metCount = rows.filter(r => r[3] >= GOAL).length;
-      const metPct = Math.round((metCount / rows.length) * 100);
-      const last7 = rows.slice(-7);
-      const debt7 = last7.reduce((acc, r) => acc + (r[3] - GOAL), 0);
-
-      document.getElementById('durMetaSub').textContent = `Meta: ${(GOAL/60).toFixed(1).replace('.0','')} h · ${rows.length} noches`;
-
-      document.getElementById('kpiGrid').innerHTML = `
-        <div class="kpi">
-          <div class="kpi-label">Promedio</div>
-          <div class="kpi-val" style="color:${avgDur >= GOAL ? 'var(--green)' : avgDur >= GOAL - 45 ? 'var(--cyan)' : 'var(--amber)'}">${fmtHM(avgDur)}</div>
-          <div class="kpi-sub">${rows.length} noches</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Profundo</div>
-          <div class="kpi-val" style="color:var(--blue)">${avgDp != null ? Math.round(avgDp) + ' min' : '—'}</div>
-          <div class="kpi-sub">${avgDp != null ? Math.round((avgDp / avgDur) * 100) + '% del sueño' : '—'}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Fase REM</div>
-          <div class="kpi-val" style="color:var(--purple)">${avgRem != null ? Math.round(avgRem) + ' min' : '—'}</div>
-          <div class="kpi-sub">${avgRem != null ? Math.round((avgRem / avgDur) * 100) + '% del sueño' : '—'}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Eficiencia</div>
-          <div class="kpi-val" style="color:var(--green)">${avgEff.toFixed(1)}%</div>
-          <div class="kpi-sub">Vigilia: ${Math.round(avg(rows.map(r => r[4])))}m</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Deuda 7d</div>
-          <div class="kpi-val" style="color:${debt7 >= 0 ? 'var(--green)' : 'var(--magenta)'}">${debt7 >= 0 ? '+' : ''}${fmtHM(debt7)}</div>
-          <div class="kpi-sub">vs meta ${(GOAL/60).toFixed(1).replace('.0','')}h</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Cumplimiento</div>
-          <div class="kpi-val" style="color:var(--cyan)">${metPct}%</div>
-          <div class="kpi-sub">${metCount} de ${rows.length} noches</div>
-        </div>
-      `;
-    }
-
-    function renderDurChart(rows) {
-      const labels = rows.map(r => fmtShortDate(r[0]));
-      const durs = rows.map(r => +(r[3] / 60).toFixed(2));
-      const ma7 = rows.map((_, i) => {
-        const slice = rows.slice(Math.max(0, i - 6), i + 1);
-        return +(avg(slice.map(x => x[3])) / 60).toFixed(2);
-      });
-      const goalVal = +(GOAL / 60).toFixed(2);
-      const maxH = Math.ceil(Math.max(goalVal + 1, ...durs));
-
-      const opts = baseChartOptions();
-      opts.scales.y = {
-        ...opts.scales.y,
-        min: 0,
-        max: Math.max(9.5, maxH),
-        ticks: { ...opts.scales.y.ticks, stepSize: 2, callback: v => `${v}h` }
-      };
-
-      upsertChart('chartDur', {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Horas',
-              data: durs,
-              backgroundColor: rows.map(r =>
-                r[3] >= GOAL ? 'rgba(16, 185, 129, 0.72)' :
-                r[3] >= GOAL - 45 ? 'rgba(59, 130, 246, 0.72)' :
-                'rgba(244, 63, 94, 0.68)'
-              ),
-              borderRadius: 4,
-              maxBarThickness: 18,
-              order: 2
-            },
-            {
-              label: 'Prom. 7d',
-              type: 'line',
-              data: ma7,
-              borderColor: '#22d3ee',
-              backgroundColor: '#22d3ee',
-              borderWidth: 2,
-              pointRadius: 0,
-              tension: 0.35,
-              order: 1
-            },
-            {
-              label: 'Meta',
-              type: 'line',
-              data: rows.map(() => goalVal),
-              borderColor: '#a855f7',
-              borderDash: [5, 5],
-              borderWidth: 1.5,
-              pointRadius: 0,
-              order: 0
-            }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    function renderCalendar(rows) {
-      const grid = document.getElementById('calGrid');
-      const dows = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-      let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
-
-      const firstDate = dToDate(rows[0][0]);
-      const startOffset = (firstDate.getDay() + 6) % 7;
-      for (let i = 0; i < startOffset; i++) html += `<div class="cal-cell empty"></div>`;
-
-      const rowMap = new Map(rows.map(r => [r[0], r]));
-      const minD = rows[0][0], maxD = rows[rows.length - 1][0];
-
-      for (let d = minD; d <= maxD; d++) {
-        const r = rowMap.get(d);
-        const dt = dToDate(d);
-        const isFirst = dt.getDate() === 1 || d === minD;
-        const mTag = isFirst ? `<span class="month-tag">${MONTHS[dt.getMonth()]}</span>` : '';
-
-        if (!r) {
-          html += `<div class="cal-cell" style="background:rgba(148,163,184,0.08);color:var(--dim)">${mTag}${dt.getDate()}</div>`;
-          continue;
-        }
-        const diff = r[3] - GOAL;
-        let bg = 'rgba(244, 63, 94, 0.36)';
-        if (diff >= 0) bg = 'rgba(16, 185, 129, 0.42)';
-        else if (diff >= -30) bg = 'rgba(59, 130, 246, 0.42)';
-        else if (diff >= -60) bg = 'rgba(245, 158, 11, 0.40)';
-
-        const hasCause = Boolean(CA[d]);
-        const sel = d === SELECTED_DAY ? 'selected' : '';
-        html += `
-          <div class="cal-cell ${sel}" data-day="${d}" style="background:${bg}">
-            ${mTag}
-            ${hasCause ? '<span class="cause-dot"></span>' : ''}
-            <span>${dt.getDate()}</span>
-            <span class="hrs">${(r[3]/60).toFixed(1)}h</span>
-          </div>
-        `;
-      }
-      grid.innerHTML = html;
-
-      grid.querySelectorAll('.cal-cell[data-day]').forEach(el => {
-        el.addEventListener('click', () => {
-          SELECTED_DAY = Number(el.dataset.day);
-          renderCalendar(rows);
-        });
-      });
-
-      const cur = rowMap.get(SELECTED_DAY) || rows[rows.length - 1];
-      if (cur) {
-        const eff = (cur[3] / (cur[3] + cur[4]) * 100).toFixed(1);
-        const light = (cur[5] != null && cur[6] != null) ? Math.max(0, cur[3] - cur[5] - cur[6]) : null;
-        document.getElementById('dayDetail').innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
-            <strong>${fmtFullDate(cur[0])}</strong>
-            <span class="badge ${cur[3] >= GOAL ? 'good' : cur[3] >= GOAL - 45 ? 'warn' : 'bad'}">${cur[3] >= GOAL ? 'Meta cumplida' : fmtHM(cur[3] - GOAL) + ' vs meta'}</span>
-          </div>
-          <div class="day-detail-grid">
-            <div class="dd-item"><span>Duración</span><strong>${fmtHM(cur[3])}</strong></div>
-            <div class="dd-item"><span>Horario</span><strong>${fmtClock(cur[1])} → ${fmtClock(cur[2])}</strong></div>
-            <div class="dd-item"><span>Profundo / REM</span><strong>${cur[5] != null ? cur[5]+'m' : '—'} / ${cur[6] != null ? cur[6]+'m' : '—'}</strong></div>
-            <div class="dd-item"><span>Eficiencia / Vigilia</span><strong>${eff}% (${cur[4]}m)</strong></div>
-          </div>
-          ${light != null ? `<div style="font-size:0.72rem;color:var(--dim);margin-top:6px">Esencial/Ligero: ${light} min</div>` : ''}
-          ${CA[cur[0]] ? `<div class="dd-cause"><strong>Nota / Causa:</strong> ${CA[cur[0]]}</div>` : ''}
-        `;
-      }
-    }
-
-    function renderDebtChart(rows) {
-      const labels = rows.map(r => fmtShortDate(r[0]));
-      const debt = rows.map((_, i) => {
-        const slice = rows.slice(Math.max(0, i - 6), i + 1);
-        return +(slice.reduce((s, x) => s + (x[3] - GOAL), 0) / 60).toFixed(2);
-      });
-      const minVal = Math.min(0, ...debt);
-      const maxVal = Math.max(0, ...debt);
-
-      const opts = baseChartOptions();
-      opts.scales.y = {
-        ...opts.scales.y,
-        suggestedMin: Math.floor(minVal - 1),
-        suggestedMax: Math.ceil(maxVal + 1),
-        ticks: { ...opts.scales.y.ticks, callback: v => `${v > 0 ? '+' : ''}${v}h` }
-      };
-
-      upsertChart('chartDebt', {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Balance 7d (h)',
-              data: debt,
-              borderColor: '#ec4899',
-              backgroundColor: 'rgba(236, 72, 153, 0.15)',
-              fill: true,
-              borderWidth: 2,
-              tension: 0.3,
-              pointRadius: 1.5
-            },
-            {
-              label: 'Equilibrio (0h)',
-              data: rows.map(() => 0),
-              borderColor: 'rgba(148, 163, 184, 0.45)',
-              borderDash: [4, 4],
-              borderWidth: 1,
-              pointRadius: 0
-            }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    function renderCauseTable(rows) {
-      const withCause = rows.filter(r => CA[r[0]]);
-      const clean = rows.filter(r => !CA[r[0]]);
-
-      const strip = document.getElementById('impactStrip');
-      const aCleanDur = avg(clean.map(r => r[3]));
-      const aCleanRem = avg(clean.map(r => r[6]));
-      const aCauseDur = avg(withCause.map(r => r[3]));
-      const aCauseRem = avg(withCause.map(r => r[6]));
-
-      strip.innerHTML = `
-        <div class="impact-pill">
-          <div class="lbl">Noches sin notas (${clean.length})</div>
-          <div class="val" style="color:var(--green)">${fmtHM(aCleanDur)}</div>
-          <div class="sub">REM prom.: ${aCleanRem != null ? Math.round(aCleanRem)+' min' : '—'}</div>
-        </div>
-        <div class="impact-pill">
-          <div class="lbl">Con causa/nota (${withCause.length})</div>
-          <div class="val" style="color:var(--magenta)">${fmtHM(aCauseDur)}</div>
-          <div class="sub">REM prom.: ${aCauseRem != null ? Math.round(aCauseRem)+' min' : '—'}</div>
-        </div>
-      `;
-
-      const tbody = document.getElementById('causeTableBody');
-      if (!withCause.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">No hay causas registradas en este rango.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = [...withCause].reverse().map(r => {
-        const delta = r[3] - GOAL;
-        return `
-          <tr>
-            <td>${fmtShortDate(r[0])}</td>
-            <td style="white-space:normal;min-width:140px">${CA[r[0]]}</td>
-            <td class="num">${fmtHM(r[3])}</td>
-            <td class="num" style="color:var(--purple)">${r[6] != null ? r[6]+'m' : '—'}</td>
-            <td class="num" style="color:var(--blue)">${r[5] != null ? r[5]+'m' : '—'}</td>
-            <td class="num"><span class="badge ${delta >= 0 ? 'good' : delta >= -45 ? 'warn' : 'bad'}">${delta >= 0 ? '+' : ''}${fmtHM(delta)}</span></td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderWeeklyTable(rows) {
-      const weeks = new Map();
-      rows.forEach(r => {
-        const dt = dToDate(r[0]);
-        const monday = new Date(dt);
-        monday.setDate(dt.getDate() - ((dt.getDay() + 6) % 7));
-        const key = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
-        const label = `${monday.getDate()} ${MONTHS[monday.getMonth()]}`;
-        if (!weeks.has(key)) weeks.set(key, { label, items: [] });
-        weeks.get(key).items.push(r);
-      });
-
-      document.getElementById('weeklyTableBody').innerHTML = Array.from(weeks.values()).reverse().map(w => {
-        const aDur = avg(w.items.map(x => x[3]));
-        const aDp = avg(w.items.map(x => x[5]));
-        const aRem = avg(w.items.map(x => x[6]));
-        const aEff = avg(w.items.map(x => x[3] / (x[3] + x[4]) * 100));
-        return `
-          <tr>
-            <td>Sem. ${w.label}</td>
-            <td class="num">${w.items.length}</td>
-            <td class="num">${fmtHM(aDur)}</td>
-            <td class="num" style="color:var(--blue)">${aDp != null ? Math.round(aDp)+'m' : '—'}</td>
-            <td class="num" style="color:var(--purple)">${aRem != null ? Math.round(aRem)+'m' : '—'}</td>
-            <td class="num" style="color:var(--green)">${aEff.toFixed(1)}%</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderRecommendations(rows) {
-      const weekdays = rows.filter(r => {
-        const dow = dToDate(r[0]).getDay();
-        return dow >= 1 && dow <= 5;
-      });
-      const avgWakeW = avg(weekdays.map(r => r[2])) ?? 7.0;
-      const avgAw = avg(rows.map(r => r[4])) ?? 12;
-      const targetBed = avgWakeW - (GOAL + avgAw) / 60;
-      const avgBedAll = avg(rows.map(r => r[1]));
-      const bedStd = Math.sqrt(avg(rows.map(r => Math.pow(r[1] - avgBedAll, 2))) || 0);
-
-      document.getElementById('recBox').innerHTML = `
-        <div class="rec-item">
-          <div class="label">Hora ideal para dormir (L–V)</div>
-          <div class="val">${fmtClock(targetBed)}</div>
-          <div class="desc">Para despertar a las ${fmtClock(avgWakeW)} y lograr ${(GOAL/60).toFixed(1).replace('.0','')} h netas.</div>
-        </div>
-        <div class="rec-item">
-          <div class="label">Promedio actual al acostarte</div>
-          <div class="val" style="color:var(--purple)">${fmtClock(avgBedAll)}</div>
-          <div class="desc">Variabilidad horaria: ±${bedStd.toFixed(1)} h.</div>
-        </div>
-        <div class="rec-item">
-          <div class="label">Colchón de vigilia</div>
-          <div class="val" style="color:var(--green)">+${Math.round(avgAw)} min</div>
-          <div class="desc">Tiempo promedio despierto en cama incluido.</div>
-        </div>
-      `;
-    }
-
-    function renderScheduleChart(rows) {
-      const labels = rows.map(r => fmtShortDate(r[0]));
-      const floating = rows.map(r => [r[1], r[2]]);
-      const yMin = Math.floor(Math.min(-2, ...rows.map(r => r[1]))) - 0.5;
-      const yMax = Math.ceil(Math.max(10, ...rows.map(r => r[2]))) + 0.5;
-
-      const opts = baseChartOptions();
-      opts.scales.y = {
-        ...opts.scales.y,
-        min: yMin,
-        max: yMax,
-        ticks: { ...opts.scales.y.ticks, stepSize: 2, callback: v => fmtClock(v) }
-      };
-      opts.plugins.tooltip.callbacks = {
-        label: ctx => {
-          const [b, w] = ctx.raw;
-          return ` ${fmtClock(b)} → ${fmtClock(w)}`;
-        }
-      };
-
-      upsertChart('chartSchedule', {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Bloque de sueño',
-            data: floating,
-            backgroundColor: rows.map(r => r[1] > 1 ? 'rgba(236, 72, 153, 0.72)' : 'rgba(34, 211, 238, 0.72)'),
-            borderRadius: 4,
-            borderSkipped: false,
-            maxBarThickness: 16
-          }]
-        },
-        options: opts
-      });
-    }
-
-    function renderBedRemChart(rows) {
-      const valid = rows.filter(r => r[6] != null);
-      const early = valid.filter(r => r[1] <= 1);
-      const late = valid.filter(r => r[1] > 1);
-      const earlyRem = avg(early.map(r => r[6]));
-      const lateRem = avg(late.map(r => r[6]));
-
-      const insight = document.getElementById('bedRemInsight');
-      if (earlyRem != null && lateRem != null) {
-        const diff = Math.round(earlyRem - lateRem);
-        insight.innerHTML = `<strong>Hallazgo:</strong> acostándote antes de la 01:00 promedias <strong>${Math.round(earlyRem)} min</strong> de REM, frente a <strong>${Math.round(lateRem)} min</strong> tras la 01:00 (${diff >= 0 ? '-' + diff : '+' + Math.abs(diff)} min).`;
-      } else {
-        insight.innerHTML = `<strong>Referencia:</strong> cada punto muestra una noche según su hora de inicio y minutos de REM.`;
-      }
-
-      const opts = baseChartOptions();
-      opts.interaction = { mode: 'nearest', intersect: true };
-      opts.scales.x = {
-        type: 'linear',
-        min: Math.floor(Math.min(-2, ...valid.map(r => r[1]))),
-        max: Math.ceil(Math.max(5.5, ...valid.map(r => r[1]))),
-        ticks: { color: '#94a3b8', stepSize: 1, font: { size: 10 }, callback: v => fmtClock(v) },
-        grid: { color: 'rgba(148, 163, 184, 0.08)' }
-      };
-      opts.scales.y = {
-        ...opts.scales.y,
-        min: 0,
-        suggestedMax: 185,
-        ticks: { ...opts.scales.y.ticks, callback: v => `${v}m` }
-      };
-      opts.plugins.tooltip.callbacks = {
-        title: items => items.length ? fmtFullDate(items[0].raw.d) : '',
-        label: ctx => ` Acostado: ${fmtClock(ctx.raw.x)} · REM: ${ctx.raw.y} min`
-      };
-
-      upsertChart('chartBedRem', {
-        type: 'scatter',
-        data: {
-          datasets: [
-            {
-              label: 'Antes de 01:00',
-              data: early.map(r => ({ x: r[1], y: r[6], d: r[0] })),
-              backgroundColor: 'rgba(34, 211, 238, 0.85)',
-              pointRadius: 5
-            },
-            {
-              label: 'Después de 01:00',
-              data: late.map(r => ({ x: r[1], y: r[6], d: r[0] })),
-              backgroundColor: 'rgba(236, 72, 153, 0.85)',
-              pointRadius: 5
-            }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    function renderSplitTable(rows) {
-      const groups = [
-        { name: 'Semana (Lun–Vie)', items: rows.filter(r => { const d = dToDate(r[0]).getDay(); return d >= 1 && d <= 5; }) },
-        { name: 'Fin de semana (Sáb–Dom)', items: rows.filter(r => { const d = dToDate(r[0]).getDay(); return d === 0 || d === 6; }) },
-        { name: 'Acostado antes de 01:00', items: rows.filter(r => r[1] <= 1) },
-        { name: 'Madrugada (> 01:00)', items: rows.filter(r => r[1] > 1) }
-      ];
-      document.getElementById('splitTableBody').innerHTML = groups.map(g => {
-        if (!g.items.length) return '';
-        return `
-          <tr>
-            <td>${g.name}</td>
-            <td class="num">${g.items.length}</td>
-            <td class="num">${fmtClock(avg(g.items.map(r => r[1])))}</td>
-            <td class="num">${fmtClock(avg(g.items.map(r => r[2])))}</td>
-            <td class="num">${fmtHM(avg(g.items.map(r => r[3])))}</td>
-            <td class="num" style="color:var(--purple)">${Math.round(avg(g.items.map(r => r[6])) || 0)}m</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderStagesChart(rows) {
-      const labels = rows.map(r => fmtShortDate(r[0]));
-      const opts = baseChartOptions();
-      opts.scales.y = {
-        ...opts.scales.y,
-        min: 0,
-        suggestedMax: 185,
-        ticks: { ...opts.scales.y.ticks, callback: v => `${v}m` }
-      };
-
-      upsertChart('chartStages', {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'REM (min)',
-              data: rows.map(r => r[6]),
-              borderColor: '#a855f7',
-              backgroundColor: 'rgba(168, 85, 247, 0.14)',
-              fill: true,
-              borderWidth: 2,
-              tension: 0.3,
-              pointRadius: 1.5,
-              spanGaps: true
-            },
-            {
-              label: 'Profundo (min)',
-              data: rows.map(r => r[5]),
-              borderColor: '#3b82f6',
-              backgroundColor: 'rgba(59, 130, 246, 0.14)',
-              fill: true,
-              borderWidth: 2,
-              tension: 0.3,
-              pointRadius: 1.5,
-              spanGaps: true
-            },
-            {
-              label: 'Ref. REM (90m)',
-              data: rows.map(() => 90),
-              borderColor: 'rgba(168, 85, 247, 0.4)',
-              borderDash: [4, 4],
-              borderWidth: 1,
-              pointRadius: 0
-            }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    function renderStagesByDurChart(rows) {
-      const buckets = [
-        { label: '< 5h', min: 0, max: 300 },
-        { label: '5–6h', min: 300, max: 360 },
-        { label: '6–7h', min: 360, max: 420 },
-        { label: '7–8h', min: 420, max: 480 },
-        { label: '≥ 8h', min: 480, max: 9999 }
-      ];
-      const dpData = [], remData = [], counts = [];
-      buckets.forEach(b => {
-        const sub = rows.filter(r => r[3] >= b.min && r[3] < b.max && r[5] != null && r[6] != null);
-        counts.push(sub.length);
-        dpData.push(sub.length ? Math.round(avg(sub.map(r => r[5]))) : 0);
-        remData.push(sub.length ? Math.round(avg(sub.map(r => r[6]))) : 0);
-      });
-
-      const opts = baseChartOptions();
-      opts.scales.y = {
-        ...opts.scales.y,
-        min: 0,
-        suggestedMax: 160,
-        ticks: { ...opts.scales.y.ticks, callback: v => `${v}m` }
-      };
-
-      upsertChart('chartStagesByDur', {
-        type: 'bar',
-        data: {
-          labels: buckets.map((b, i) => `${b.label} (${counts[i]})`),
-          datasets: [
-            { label: 'Profundo (min)', data: dpData, backgroundColor: 'rgba(59, 130, 246, 0.8)', borderRadius: 5, maxBarThickness: 28 },
-            { label: 'REM (min)', data: remData, backgroundColor: 'rgba(168, 85, 247, 0.8)', borderRadius: 5, maxBarThickness: 28 }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    function renderEffChart(rows) {
-      const labels = rows.map(r => fmtShortDate(r[0]));
-      const effs = rows.map(r => +(r[3] / (r[3] + r[4]) * 100).toFixed(1));
-      const minEff = Math.max(50, Math.floor(Math.min(85, ...effs) / 5) * 5);
-
-      const opts = baseChartOptions();
-      opts.scales = {
-        x: opts.scales.x,
-        y: {
-          position: 'left',
-          min: minEff,
-          max: 100,
-          ticks: { color: '#10b981', font: { size: 10 }, callback: v => `${v}%` },
-          grid: { color: 'rgba(148, 163, 184, 0.08)' }
-        },
-        y1: {
-          position: 'right',
-          min: 0,
-          suggestedMax: 60,
-          ticks: { color: '#f59e0b', font: { size: 10 }, callback: v => `${v}m` },
-          grid: { drawOnChartArea: false }
-        }
-      };
-
-      upsertChart('chartEff', {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Despierto (min)',
-              data: rows.map(r => r[4]),
-              backgroundColor: 'rgba(245, 158, 11, 0.55)',
-              yAxisID: 'y1',
-              borderRadius: 4,
-              maxBarThickness: 16,
-              order: 2
-            },
-            {
-              label: 'Eficiencia (%)',
-              type: 'line',
-              data: effs,
-              borderColor: '#10b981',
-              borderWidth: 2,
-              pointRadius: 1.5,
-              yAxisID: 'y',
-              tension: 0.25,
-              order: 1
-            }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    function renderStackedChart(rows) {
-      const labels = rows.map(r => fmtShortDate(r[0]));
-      const dp = rows.map(r => r[5] ?? 0);
-      const rem = rows.map(r => r[6] ?? 0);
-      const lt = rows.map(r => (r[5] != null && r[6] != null) ? Math.max(0, r[3] - r[5] - r[6]) : r[3]);
-      const aw = rows.map(r => r[4] ?? 0);
-
-      const opts = baseChartOptions();
-      opts.scales = {
-        x: { ...opts.scales.x, stacked: true },
-        y: {
-          ...opts.scales.y,
-          stacked: true,
-          min: 0,
-          ticks: { ...opts.scales.y.ticks, callback: v => `${Math.round(v/60)}h` }
-        }
-      };
-
-      upsertChart('chartStacked', {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Profundo', data: dp, backgroundColor: '#3b82f6', maxBarThickness: 18 },
-            { label: 'REM', data: rem, backgroundColor: '#a855f7', maxBarThickness: 18 },
-            { label: 'Esencial', data: lt, backgroundColor: '#22d3ee', maxBarThickness: 18 },
-            { label: 'Despierto', data: aw, backgroundColor: 'rgba(245, 158, 11, 0.78)', borderRadius: { topLeft: 3, topRight: 3 }, maxBarThickness: 18 }
-          ]
-        },
-        options: opts
-      });
-    }
-
-    // Event Listeners
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-        requestAnimationFrame(() => {
-          Object.values(charts).forEach(c => c.resize());
-        });
-      });
+  document.querySelectorAll('#hm .c[data-d]').forEach(el => {
+    el.addEventListener('click', () => {
+      SEL = Number(el.dataset.d);
+      document.querySelectorAll('#hm .c').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+      renderDayDetail(byD.get(SEL), goalLbl);
     });
+  });
+  renderDayDetail(byD.get(SEL) || R[R.length - 1], goalLbl);
 
-    document.querySelectorAll('#presetGroup .pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#presetGroup .pill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const [a, b] = PR[btn.dataset.preset];
-        setR(a, b);
-      });
-    });
+  // Recomendación horaria (Tab 2)
+  const avgWakeW = avg(wkp.map(r => r.wake)) ?? 7.0;
+  const avgAw = avg(R.map(r => r.aw)) ?? 12;
+  const targetBed = avgWakeW - (GOAL + avgAw) / 60;
+  const avgBedAll = avg(R.map(r => r.bed)) ?? 0;
+  const bedStd = Math.sqrt(avg(R.map(r => (r.bed - avgBedAll) ** 2)) || 0);
+  document.getElementById('recGrid').innerHTML =
+    '<div class="rec-item"><div class="lbl">Hora ideal para dormir (L–V)</div><div class="val">' + clock(targetBed) + '</div><div class="desc">Para despertar a las ' + clock(avgWakeW) + ' y lograr ' + goalLbl + ' netas.</div></div>' +
+    '<div class="rec-item"><div class="lbl">Promedio actual al dormirte</div><div class="val" style="color:var(--pu)">' + clock(avgBedAll) + '</div><div class="desc">Variabilidad horaria: ±' + f1(bedStd) + ' h.</div></div>' +
+    '<div class="rec-item"><div class="lbl">Colchón de vigilia</div><div class="val" style="color:var(--gn)">+' + Math.round(avgAw) + ' min</div><div class="desc">Tiempo promedio despierto en cama.</div></div>';
 
-    document.querySelectorAll('#goalGroup .pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#goalGroup .pill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        GOAL = Number(btn.dataset.goal);
-        renderAll();
-      });
-    });
+  // Agenda SVG (Original, últimas 28 noches, encuadre exacto)
+  const G = R.slice(-28);
+  const minT = Math.min(-2, Math.floor(Math.min(...G.map(q => q.bed))));
+  const maxT = Math.max(10, Math.ceil(Math.max(...G.map(q => q.wake))));
+  const spanT = Math.max(10, maxT - minT);
+  const leftPad = 48, rightPad = 12, W = 380;
+  const scaleX = (W - leftPad - rightPad) / spanT;
+  const X = t => leftPad + (t - minT) * scaleX;
+  const H = G.length * 13 + 44;
+  let v = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img"><title>Agenda de sueño de las últimas 28 noches</title>';
+  for (let t = Math.ceil(minT / 2) * 2; t <= maxT; t += 2){
+    const x = X(t);
+    v += '<line x1="' + x.toFixed(1) + '" y1="22" x2="' + x.toFixed(1) + '" y2="' + (H - 12) + '" style="stroke:var(--bd)" stroke-width="0.6"/>';
+    v += '<text x="' + x.toFixed(1) + '" y="14" font-size="10" text-anchor="' + (t === maxT ? 'end' : t === minT ? 'start' : 'middle') + '" style="fill:var(--mut)">' + String(((t % 24) + 24) % 24).padStart(2, '0') + 'h</text>';
+  }
+  if (7 >= minT && 7 <= maxT){
+    v += '<line x1="' + X(7).toFixed(1) + '" y1="22" x2="' + X(7).toFixed(1) + '" y2="' + (H - 12) + '" stroke-width="1.4" stroke-dasharray="5 4" style="stroke:var(--mut)"/>';
+  }
+  G.forEach((q, i) => {
+    const y = 27 + i * 13;
+    const x1 = X(q.bed), x2 = X(q.wake), bw = Math.max(3, x2 - x1);
+    const dObj = dToDate(q.d);
+    v += '<text x="43" y="' + (y + 5) + '" font-size="10" text-anchor="end" dominant-baseline="central" style="fill:var(--mut)">' + 'LMXJVSD'[q.wd] + ' ' + dObj.getDate() + '</text>';
+    v += '<rect x="' + x1.toFixed(1) + '" y="' + y + '" width="' + bw.toFixed(1) + '" height="9" rx="4" style="fill:var(--' + (q.wd > 4 ? 'or' : 'bl') + ')"/>';
+  });
+  document.getElementById('gt').innerHTML = v + '</svg>';
 
-    fs.addEventListener('input', () => setR(Number(fs.value), Number(ts.value)));
-    ts.addEventListener('input', () => setR(Number(fs.value), Number(ts.value)));
-    document.getElementById('btnRefresh').addEventListener('click', syncFromSheets);
+  // Tabla comparativa de horarios (Tab 2)
+  const splitGroups = [
+    { name:'Semana (Lun–Vie)', items:R.filter(r => r.wd <= 4) },
+    { name:'Fin de semana (Sáb–Dom)', items:R.filter(r => r.wd > 4) },
+    { name:'Inicio antes de 01:00', items:R.filter(r => r.bed <= 1) },
+    { name:'Inicio tras la 01:00', items:R.filter(r => r.bed > 1) }
+  ];
+  document.getElementById('splitBody').innerHTML = splitGroups.map(g => {
+    if (!g.items.length) return '';
+    const rAvg = avg(g.items.map(r => r.rem));
+    return '<tr><td>' + g.name + '</td><td class="num">' + g.items.length + '</td><td class="num">' + clock(avg(g.items.map(r => r.bed))) + '</td><td class="num">' + clock(avg(g.items.map(r => r.wake))) + '</td><td class="num">' + hmShort(avg(g.items.map(r => r.dur))) + '</td><td class="num" style="color:var(--rm);font-weight:600">' + (rAvg != null ? Math.round(rAvg) + ' min' : '–') + '</td></tr>';
+  }).join('');
 
-    async function syncFromSheets() {
-      const dot = document.getElementById('syncDot');
-      const txt = document.getElementById('syncText');
-      dot.className = 'dot';
-      txt.textContent = 'Sincronizando con Google Sheets…';
-      try {
-        const res = await fetch(API_URL, { cache: 'no-store' });
-        const data = await res.json();
-        if (data.N && data.N.length) {
-          const map = new Map(N.map(r => [r[0], sanitizeRow(r)]));
-          data.N.forEach(r => {
-            const clean = sanitizeRow(r);
-            map.set(clean[0], clean);
-          });
-          N = Array.from(map.values()).sort((a, b) => a[0] - b[0]);
-          Object.assign(CA, data.CA || {});
+  // Dibujar todos los gráficos Chart.js
+  drawCharts(AR, R, wkp, m, b, goalH, goalLbl);
+}
 
-          const newLast = N[N.length - 1][0];
-          fs.max = ts.max = newLast;
-          PR.all = [1, newLast];
-          PR.job = [13, newLast];
-          PR['4w'] = [Math.max(1, newLast - 27), newLast];
-          PR['2w'] = [Math.max(1, newLast - 13), newLast];
-          SELECTED_DAY = newLast;
-          setR(FROM, newLast);
-        }
-        const now = new Date();
-        const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        dot.className = 'dot ok';
-        txt.textContent = `Sincronizado con Google Sheets · ${hhmm}`;
-      } catch (err) {
-        dot.className = 'dot err';
-        txt.textContent = 'Modo local (sin conexión a Sheets)';
-        console.warn('Usando datos locales:', err);
-      }
+function renderDayDetail(q, goalLbl){
+  if (!q) return;
+  const diff = q.dur - GOAL;
+  const eff = (q.dur / (q.dur + q.aw) * 100).toFixed(1).replace('.', ',');
+  const lt = (q.dp != null && q.rem != null) ? Math.max(0, q.dur - q.dp - q.rem) : null;
+  const cls = diff >= 0 ? 'good' : diff >= -45 ? 'warn' : 'bad';
+  document.getElementById('dayDetail').innerHTML =
+    '<div class="dd-head"><strong>' + dtFull(q.d) + '</strong><span class="badge ' + cls + '">' +
+    (diff >= 0 ? 'Meta ' + goalLbl + ' cumplida' : hmShort(diff) + ' vs ' + goalLbl) + '</span></div>' +
+    '<div class="dd-grid">' +
+      '<div class="dd-item"><span>Duración</span><strong>' + hmShort(q.dur) + '</strong></div>' +
+      '<div class="dd-item"><span>Horario</span><strong>' + clock(q.bed) + ' → ' + clock(q.wake) + '</strong></div>' +
+      '<div class="dd-item"><span>Profundo / REM</span><strong>' + (q.dp != null ? q.dp + 'm' : '–') + ' / ' + (q.rem != null ? q.rem + 'm' : '–') + '</strong></div>' +
+      '<div class="dd-item"><span>Eficiencia / Vigilia</span><strong>' + eff + '% (' + q.aw + 'm)</strong></div>' +
+    '</div>' +
+    (lt != null ? '<div style="font-size:.74rem;color:var(--mut);margin-top:6px">Sueño ligero: ' + lt + ' min</div>' : '');
+}
+
+function drawCharts(AR, R, wkp, m, b, goalH, goalLbl){
+  CH.forEach(c => c.destroy());
+  CH = [];
+
+  const tk = cv('--mut'), gd = cv('--gr'), bl = cv('--bl'), or = cv('--or'),
+        pu = cv('--pu'), gn = cv('--gn'), rd = cv('--rd'), dpC = cv('--dp'), ltC = cv('--lt'), rmC = cv('--rm');
+
+  const ax = (t, o) => Object.assign({
+    ticks: { color: tk, font: { size: 11 } },
+    grid: { color: gd },
+    title: { display: !!t, text: t, color: tk, font: { size: 11 } }
+  }, o || {});
+
+  const base = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    layout: { padding: { top: 8, right: 10, bottom: 2, left: 2 } },
+    plugins: { legend: { display: false } }
+  };
+
+  // --- TAB 1: PROMEDIO MÓVIL HORAS DORMIDAS (Original) ---
+  const dh = AR.map(r => r.dur / 60);
+  const mh = dh.map((_, i) => i < 6 ? null : avg(dh.slice(i - 6, i + 1)));
+  const jx = AR.map((r, i) => i).filter(i => AR[i].d >= FROM && AR[i].d <= TO);
+  const jm = jx.map(i => mh[i]);
+  const ke = jm.filter(v => v != null);
+  document.getElementById('c8').textContent = ke.length
+    ? 'Último promedio móvil: ' + hm(ke[ke.length - 1] * 60) + ' · máximo ' + hm(Math.max(...ke) * 60) + ' · mínimo ' + hm(Math.min(...ke) * 60) + '.'
+    : 'Necesitas al menos 7 noches para calcular el promedio móvil.';
+
+  const pq = {
+    id: 'pq',
+    afterDatasetsDraw(c){
+      const k = jm.length - 1, p = c.getDatasetMeta(1).data[k], q = c.ctx;
+      if (jm[k] == null || !p) return;
+      q.save(); q.font = '700 11px Figtree,sans-serif'; q.fillStyle = pu; q.textBaseline = 'middle';
+      q.fillText(f1(jm[k]) + ' h', p.x + 6, p.y); q.restore();
     }
+  };
+  CH.push(new Chart('mv', {
+    type: 'line',
+    data: {
+      labels: jx.map(i => dt(AR[i].d)),
+      datasets: [
+        { data: jx.map(i => dh[i]), showLine: false, pointRadius: 4, pointBackgroundColor: jx.map(i => AR[i].wd > 4 ? or : bl), pointBorderWidth: 0, order: 2 },
+        { data: jm, borderColor: pu, borderWidth: 2.8, pointRadius: 0, tension: 0.3, spanGaps: true, order: 1 },
+        { data: jx.map(() => goalH), borderColor: tk, borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, order: 3 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      layout: { padding: { top: 8, right: 44, bottom: 2, left: 2 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          filter: i => i.datasetIndex < 2,
+          callbacks: { label: c => c.datasetIndex === 0 ? 'Dormiste ' + hm(c.parsed.y * 60) : 'Promedio móvil: ' + hm(c.parsed.y * 60) }
+        }
+      },
+      scales: {
+        x: ax(null, { ticks: { color: tk, autoSkip: true, maxTicksLimit: 7, maxRotation: 0, font: { size: 11 } }, grid: { display: false } }),
+        y: ax(null, { min: 2, max: 9.5, ticks: { stepSize: 1, color: tk, callback: q => q + ' h', font: { size: 11 } } })
+      }
+    }),
+    plugins: [pq]
+  }));
 
-    setR(FROM, TO);
-    syncFromSheets();
-  </script>
+  // --- TAB 1: DEUDA ACUMULADA 7 DÍAS (Nuevo) ---
+  const debtArr = R.map((_, i) => {
+    const sl = R.slice(Math.max(0, i - 6), i + 1);
+    return +(sl.reduce((s, x) => s + (x.dur - GOAL), 0) / 60).toFixed(2);
+  });
+  const curDebt = debtArr[debtArr.length - 1];
+  document.getElementById('cDebt').textContent =
+    'Balance actual de las últimas 7 noches frente a ' + goalLbl + ': ' + (curDebt >= 0 ? '+' : '') + hm(curDebt * 60) + '.';
+  const minDbt = Math.floor(Math.min(-1, ...debtArr) - 1);
+  const maxDbt = Math.ceil(Math.max(1, ...debtArr) + 1);
+
+  CH.push(new Chart('debt', {
+    type: 'line',
+    data: {
+      labels: R.map(r => dt(r.d)),
+      datasets: [
+        { data: debtArr, borderColor: rd, backgroundColor: rd + '22', fill: true, borderWidth: 2.2, pointRadius: 1.5, tension: 0.3 },
+        { data: R.map(() => 0), borderColor: tk, borderDash: [5, 4], borderWidth: 1.2, pointRadius: 0 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      plugins: {
+        legend: { display: false },
+        tooltip: { filter: i => i.datasetIndex === 0, callbacks: { label: c => 'Balance 7d: ' + (c.parsed.y >= 0 ? '+' : '') + hm(c.parsed.y * 60) } }
+      },
+      scales: {
+        x: ax(null, { ticks: { color: tk, autoSkip: true, maxTicksLimit: 7, maxRotation: 0, font: { size: 11 } }, grid: { display: false } }),
+        y: ax(null, { min: minDbt, max: maxDbt, ticks: { color: tk, callback: q => (q > 0 ? '+' : '') + q + ' h', font: { size: 11 } } })
+      }
+    })
+  }));
+
+  // --- TAB 1: TU SEMANA TIPO (Original) ---
+  const dv = DOW_NAMES.map((_, i) => avg(R.filter(r => r.wd === i).map(r => r.dur / 60)) || 0);
+  const labDw = {
+    id: 'labDw',
+    afterDatasetsDraw(c){
+      const x = c.ctx;
+      x.save(); x.fillStyle = tk; x.font = '600 11px Figtree,sans-serif'; x.textAlign = 'center';
+      c.getDatasetMeta(0).data.forEach((p, i) => { if (dv[i] > 0) x.fillText(f1(dv[i]) + ' h', p.x, p.y - 6); });
+      x.restore();
+    }
+  };
+  CH.push(new Chart('dw', {
+    type: 'bar',
+    data: {
+      labels: DOW_NAMES,
+      datasets: [
+        { data: dv, backgroundColor: dv.map((_, i) => i > 4 ? or : bl), borderRadius: 5, maxBarThickness: 28, order: 2 },
+        { type: 'line', data: DOW_NAMES.map(() => goalH), borderColor: tk, borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, order: 1 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      layout: { padding: { top: 20, right: 8, bottom: 2, left: 2 } },
+      scales: {
+        x: ax(null, { grid: { display: false } }),
+        y: ax(null, { min: 0, max: 9.5, ticks: { stepSize: 2, color: tk, callback: q => q + ' h', font: { size: 11 } } })
+      }
+    }),
+    plugins: [labDw]
+  }));
+
+  // --- TAB 1: EVOLUCIÓN SEMANAL (Original) ---
+  const wl = [], a1 = [], a2 = [];
+  const startWeek = FROM - ((dToDate(FROM).getDay() + 6) % 7);
+  for (let st = startWeek; st <= TO; st += 7){
+    const w = R.filter(r => r.d >= st && r.d < st + 7);
+    if (!w.length) continue;
+    wl.push(dt(Math.max(st, 1)));
+    a1.push(avg(w.filter(r => r.wd <= 4).map(r => r.dur / 60)));
+    a2.push(avg(w.filter(r => r.wd > 4).map(r => r.dur / 60)));
+  }
+  CH.push(new Chart('wk', {
+    type: 'bar',
+    data: {
+      labels: wl,
+      datasets: [
+        { label: 'Lun–vie', data: a1, backgroundColor: bl, borderRadius: 4, maxBarThickness: 22, order: 2 },
+        { label: 'Sáb–dom', data: a2, backgroundColor: or, borderRadius: 4, maxBarThickness: 22, order: 2 },
+        { type: 'line', label: 'Meta', data: wl.map(() => goalH), borderColor: tk, borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, order: 1 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      plugins: { legend: { display: true, labels: { color: tk, boxWidth: 11, font: { size: 11 }, filter: i => i.text !== 'Meta' } } },
+      scales: {
+        x: ax('Semana del…', { grid: { display: false } }),
+        y: ax(null, { min: 0, max: 9.5, ticks: { stepSize: 2, color: tk, callback: q => q + ' h', font: { size: 11 } } })
+      }
+    })
+  }));
+
+  // --- TAB 2: DISPERSIÓN BED VS HORAS (Original) ---
+  const Wpts = wkp.map(r => ({ x: r.bed, y: r.dur / 60, d: dt(r.d) }));
+  const Epts = R.filter(r => r.wd > 4).map(r => ({ x: r.bed, y: r.dur / 60, d: dt(r.d) }));
+  const xMinSc = Math.min(-2, Math.floor(Math.min(...R.map(r => r.bed))));
+  const xMaxSc = Math.max(6, Math.ceil(Math.max(...R.map(r => r.bed))));
+
+  CH.push(new Chart('sc', {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { data: Wpts, backgroundColor: bl, pointRadius: 5.5, order: 3 },
+        { data: Epts, backgroundColor: or, pointStyle: 'triangle', pointRadius: 6.5, order: 3 },
+        { type: 'line', data: [{ x: Math.max(xMinSc, -1.8), y: m * Math.max(xMinSc, -1.8) + b }, { x: Math.min(xMaxSc, 2.5), y: m * Math.min(xMaxSc, 2.5) + b }], borderColor: bl, borderWidth: 2.2, pointRadius: 0, order: 2 },
+        { type: 'line', data: [{ x: xMinSc, y: goalH }, { x: xMaxSc, y: goalH }], borderColor: tk, borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, order: 2 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      plugins: {
+        legend: { display: false },
+        tooltip: { filter: i => i.datasetIndex < 2, callbacks: { label: c => c.raw.d + ': dormido a las ' + clock(c.parsed.x) + ' → ' + hm(c.parsed.y * 60) } }
+      },
+      scales: {
+        x: ax('Hora a la que empieza tu sueño', { min: xMinSc, max: xMaxSc, ticks: { stepSize: 1, color: tk, font: { size: 11 }, callback: q => String(((q % 24) + 24) % 24).padStart(2, '0') + 'h' } }),
+        y: ax('Horas dormidas', { min: 2.5, max: 9.5, ticks: { stepSize: 1, color: tk, font: { size: 11 }, callback: q => q + ' h' } })
+      }
+    })
+  }));
+
+  // --- TAB 2: HORA PROMEDIO DE DORMIR (Original) ---
+  const bs = DOW_NAMES.map((_, i) => {
+    const v = R.filter(r => (r.wd + 6) % 7 === i).map(r => r.bed);
+    const so = [...v].sort((x, y) => x - y), k = so.length;
+    if (!k) return { n: 0, mn: 0, mx: 0, me: null, md: null };
+    return { n: k, mn: so[0], mx: so[k - 1], me: avg(v), md: k % 2 ? so[(k - 1) / 2] : (so[k / 2 - 1] + so[k / 2]) / 2 };
+  });
+  const bc = i => (i === 4 || i === 5) ? or : bl;
+  const bdMinY = Math.min(-2.2, Math.floor(Math.min(...bs.filter(s => s.n).map(s => s.mn))) - 0.5);
+  const bdMaxY = Math.max(5.5, Math.ceil(Math.max(...bs.filter(s => s.n).map(s => s.mx))) + 0.5);
+
+  const bandP = {
+    id: 'bandP',
+    beforeDatasetsDraw(c){
+      const y = c.scales.y, a = c.chartArea, x = c.ctx;
+      x.save(); x.fillStyle = 'rgba(34,197,94,0.16)';
+      const y1 = y.getPixelForValue(-1.5), y2 = y.getPixelForValue(-0.25);
+      x.fillRect(a.left, y1, a.right - a.left, y2 - y1); x.restore();
+    }
+  };
+  const labP = {
+    id: 'labP',
+    afterDatasetsDraw(c){
+      const x = c.ctx, xs = c.scales.x, y = c.scales.y;
+      x.save(); x.font = '600 11px Figtree,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'bottom'; x.fillStyle = tk;
+      bs.forEach((s, i) => {
+        if (s.n) x.fillText(clock(s.me), xs.getPixelForValue(i), Math.max(c.chartArea.top + 12, y.getPixelForValue(s.mn) - 6));
+      });
+      x.restore();
+    }
+  };
+  CH.push(new Chart('bd', {
+    type: 'bar',
+    data: {
+      labels: DOW_NAMES,
+      datasets: [
+        { type: 'bar', data: bs.map(s => s.n ? [s.mn, s.mx] : null), backgroundColor: bs.map((_, i) => bc(i) + '45'), borderColor: bs.map((_, i) => bc(i)), borderWidth: 1.5, borderRadius: 6, borderSkipped: false, maxBarThickness: 24, order: 3 },
+        { type: 'line', showLine: false, data: bs.map(s => s.md), pointStyle: 'line', pointRadius: 11, pointBorderWidth: 2.5, pointBorderColor: tk, borderColor: tk, order: 2 },
+        { type: 'line', showLine: false, data: bs.map(s => s.me), pointStyle: 'circle', pointRadius: 6.5, pointBackgroundColor: bs.map((_, i) => bc(i)), pointBorderColor: '#ffffff', pointBorderWidth: 2, order: 1 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      layout: { padding: { top: 20, right: 8, bottom: 2, left: 2 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => { const s = bs[c.dataIndex]; return s.n ? ['Promedio ' + clock(s.me) + ' · mediana ' + clock(s.md), 'Rango ' + clock(s.mn) + ' a ' + clock(s.mx) + ' (' + s.n + ' noches)'] : ''; } } }
+      },
+      scales: {
+        x: ax(null, { grid: { display: false }, ticks: { color: tk, font: { size: 12 } } }),
+        y: ax(null, { reverse: true, min: bdMinY, max: bdMaxY, ticks: { stepSize: 1, color: tk, font: { size: 11 }, callback: q => String(((q % 24) + 24) % 24).padStart(2, '0') + ':00' } })
+      }
+    }),
+    plugins: [bandP, labP]
+  }));
+
+  // --- TAB 2: HORA DE DORMIR VS REM (Nuevo) ---
+  const remValid = R.filter(r => r.rem != null);
+  const earlyRem = remValid.filter(r => r.bed <= 1), lateRem = remValid.filter(r => r.bed > 1);
+  const eAvg = avg(earlyRem.map(r => r.rem)), lAvg = avg(lateRem.map(r => r.rem));
+  document.getElementById('cBedRem').textContent = (eAvg != null && lAvg != null)
+    ? 'Antes de la 01:00 promedias ' + Math.round(eAvg) + ' min de REM frente a ' + Math.round(lAvg) + ' min tras la 01:00.'
+    : 'Relación entre la hora de inicio del sueño y los minutos de fase REM.';
+
+  CH.push(new Chart('brem', {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { data: earlyRem.map(r => ({ x: r.bed, y: r.rem, d: dt(r.d) })), backgroundColor: bl, pointRadius: 5.5 },
+        { data: lateRem.map(r => ({ x: r.bed, y: r.rem, d: dt(r.d) })), backgroundColor: or, pointRadius: 5.5 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.raw.d + ': inicio ' + clock(c.parsed.x) + ' → ' + c.parsed.y + ' min REM' } }
+      },
+      scales: {
+        x: ax('Hora de inicio', { min: xMinSc, max: xMaxSc, ticks: { stepSize: 1, color: tk, font: { size: 11 }, callback: q => String(((q % 24) + 24) % 24).padStart(2, '0') + 'h' } }),
+        y: ax('REM (min)', { min: 0, suggestedMax: 185, ticks: { stepSize: 30, color: tk, font: { size: 11 }, callback: q => q + ' m' } })
+      }
+    })
+  }));
+
+  // --- TAB 3: EVOLUCIÓN DEL SUEÑO PROFUNDO (Original) ---
+  const spn = R.map(r => r.dp), sq = R.filter(r => r.dp != null), dm = avg(sq.map(r => r.dp)) || 0;
+  const maDp = R.map(r => {
+    if (r.d - FROM < 6) return null;
+    const w = R.filter(x => x.d > r.d - 7 && x.d <= r.d && x.dp != null);
+    return w.length ? avg(w.map(x => x.dp)) : null;
+  });
+  const mxv = avg(sq.map(r => r.d)) || 0;
+  const sx2 = sq.reduce((a, r) => a + (r.d - mxv) ** 2, 0) || 1;
+  const sxy2 = sq.reduce((a, r) => a + (r.d - mxv) * (r.dp - dm), 0);
+  const tr = sxy2 / sx2 * 7, lm = maDp[maDp.length - 1];
+  document.getElementById('c7').textContent =
+    'Promedio del rango: ' + Math.round(dm) + ' min (' + Math.round(avg(sq.map(r => r.dp / r.dur * 100)) || 0) +
+    '% de la noche) · tendencia: ' + (tr >= 0 ? '+' : '−') + f1(Math.abs(tr)) + ' min/sem · último prom. móvil: ' + (lm == null ? '–' : Math.round(lm) + ' min') + '.';
+
+  const endDp = {
+    id: 'endDp',
+    afterDatasetsDraw(c){
+      const p = c.getDatasetMeta(1).data[maDp.length - 1];
+      if (!p || lm == null) return;
+      const x = c.ctx; x.save(); x.font = '700 11px Figtree,sans-serif'; x.fillStyle = pu; x.textBaseline = 'middle';
+      x.fillText(Math.round(lm) + ' m', p.x + 6, p.y); x.restore();
+    }
+  };
+  CH.push(new Chart('dpc', {
+    type: 'line',
+    data: {
+      labels: R.map(r => dt(r.d)),
+      datasets: [
+        { data: spn, showLine: false, pointRadius: 4, pointBackgroundColor: R.map(r => r.wd > 4 ? or : bl), pointBorderWidth: 0, order: 2 },
+        { data: maDp, borderColor: pu, borderWidth: 2.8, pointRadius: 0, tension: 0.3, spanGaps: true, order: 1 },
+        { data: R.map(() => dm), borderColor: tk, borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, order: 3 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      layout: { padding: { top: 8, right: 44, bottom: 2, left: 2 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { filter: i => i.datasetIndex < 2, callbacks: { label: c => { const r = R[c.dataIndex]; return c.datasetIndex === 0 ? c.parsed.y + ' min profundo · total ' + hm(r.dur) : 'Promedio móvil: ' + Math.round(c.parsed.y) + ' min'; } } }
+      },
+      scales: {
+        x: ax(null, { grid: { display: false }, ticks: { color: tk, autoSkip: true, maxTicksLimit: 7, maxRotation: 0, font: { size: 11 } } }),
+        y: ax(null, { min: 15, max: 105, ticks: { stepSize: 20, color: tk, font: { size: 11 }, callback: q => q + ' min' } })
+      }
+    }),
+    plugins: [endDp]
+  }));
+
+  // --- TAB 3: EVOLUCIÓN DE FASE REM (Nuevo) ---
+  const rmArr = R.map(r => r.rem), rq = R.filter(r => r.rem != null), rmMean = avg(rq.map(r => r.rem)) || 0;
+  const maRm = R.map(r => {
+    if (r.d - FROM < 6) return null;
+    const w = R.filter(x => x.d > r.d - 7 && x.d <= r.d && x.rem != null);
+    return w.length ? avg(w.map(x => x.rem)) : null;
+  });
+  const lmR = maRm[maRm.length - 1];
+  document.getElementById('cRem').textContent =
+    'Promedio del rango: ' + Math.round(rmMean) + ' min (' + Math.round(avg(rq.map(r => r.rem / r.dur * 100)) || 0) +
+    '% de la noche) · último promedio móvil: ' + (lmR == null ? '–' : Math.round(lmR) + ' min') + '.';
+
+  const endRm = {
+    id: 'endRm',
+    afterDatasetsDraw(c){
+      const p = c.getDatasetMeta(1).data[maRm.length - 1];
+      if (!p || lmR == null) return;
+      const x = c.ctx; x.save(); x.font = '700 11px Figtree,sans-serif'; x.fillStyle = rmC; x.textBaseline = 'middle';
+      x.fillText(Math.round(lmR) + ' m', p.x + 6, p.y); x.restore();
+    }
+  };
+  CH.push(new Chart('rmc', {
+    type: 'line',
+    data: {
+      labels: R.map(r => dt(r.d)),
+      datasets: [
+        { data: rmArr, showLine: false, pointRadius: 4, pointBackgroundColor: R.map(r => r.wd > 4 ? or : bl), pointBorderWidth: 0, order: 2 },
+        { data: maRm, borderColor: rmC, borderWidth: 2.8, pointRadius: 0, tension: 0.3, spanGaps: true, order: 1 },
+        { data: R.map(() => 90), borderColor: tk, borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, order: 3 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      layout: { padding: { top: 8, right: 44, bottom: 2, left: 2 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { filter: i => i.datasetIndex < 2, callbacks: { label: c => c.datasetIndex === 0 ? c.parsed.y + ' min REM' : 'Promedio móvil: ' + Math.round(c.parsed.y) + ' min' } }
+      },
+      scales: {
+        x: ax(null, { grid: { display: false }, ticks: { color: tk, autoSkip: true, maxTicksLimit: 7, maxRotation: 0, font: { size: 11 } } }),
+        y: ax(null, { min: 0, max: 190, ticks: { stepSize: 30, color: tk, font: { size: 11 }, callback: q => q + ' min' } })
+      }
+    }),
+    plugins: [endRm]
+  }));
+
+  // --- TAB 3: QUÉ PIERDES CUANDO DUERMES POCO (Original) ---
+  const bk = [['< 5 h',0,300],['5 – 6,5 h',300,390],['6,5 – 7,5 h',390,450],['> 7,5 h',450,999]];
+  const S = R.filter(r => r.dp != null && r.rem != null);
+  const sg = bk.map(([, lo, hi]) => {
+    const g = S.filter(r => r.dur >= lo && r.dur < hi);
+    return { n: g.length, dp: avg(g.map(r => r.dp)) || 0, rm: avg(g.map(r => r.rem)) || 0, lt: avg(g.map(r => Math.max(0, r.dur - r.dp - r.rem))) || 0 };
+  });
+  const sl = {
+    id: 'sl',
+    afterDatasetsDraw(c){
+      const x = c.ctx; x.save(); x.font = '600 11px Figtree,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      c.data.datasets.forEach((d, i) => c.getDatasetMeta(i).data.forEach((p, j) => {
+        if (Math.abs(p.base - p.y) > 16 && d.data[j] > 0){
+          x.fillStyle = i === 2 ? '#0b2538' : '#fff';
+          x.fillText(Math.round(d.data[j]) + ' min', p.x, (p.y + p.base) / 2);
+        }
+      }));
+      x.restore();
+    }
+  };
+  CH.push(new Chart('st', {
+    type: 'bar',
+    data: {
+      labels: bk.map((q, i) => [q[0], '(' + sg[i].n + ')']),
+      datasets: [
+        { data: sg.map(q => q.dp), backgroundColor: dpC, maxBarThickness: 54 },
+        { data: sg.map(q => q.lt), backgroundColor: ltC, maxBarThickness: 54 },
+        { data: sg.map(q => q.rm), backgroundColor: rmC, maxBarThickness: 54 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      scales: {
+        x: ax('Duración de la noche', { stacked: true, grid: { display: false } }),
+        y: ax(null, { stacked: true, min: 0, max: 520, ticks: { stepSize: 100, color: tk, font: { size: 11 }, callback: q => q + ' min' } })
+      }
+    }),
+    plugins: [sl]
+  }));
+
+  // --- TAB 3: EFICIENCIA Y VIGILIA (Nuevo) ---
+  const effData = R.map(r => +(r.dur / (r.dur + r.aw) * 100).toFixed(1));
+  const minEff = Math.max(55, Math.floor(Math.min(85, ...effData) / 5) * 5);
+  CH.push(new Chart('eff', {
+    type: 'bar',
+    data: {
+      labels: R.map(r => dt(r.d)),
+      datasets: [
+        { label: 'Despierto (min)', data: R.map(r => r.aw), backgroundColor: or + '99', yAxisID: 'y1', borderRadius: 3, maxBarThickness: 14, order: 2 },
+        { label: 'Eficiencia (%)', type: 'line', data: effData, borderColor: gn, borderWidth: 2, pointRadius: 1.5, yAxisID: 'y', tension: 0.25, order: 1 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      scales: {
+        x: ax(null, { grid: { display: false }, ticks: { color: tk, autoSkip: true, maxTicksLimit: 7, maxRotation: 0, font: { size: 11 } } }),
+        y: { position: 'left', min: minEff, max: 100, ticks: { color: gn, font: { size: 11 }, callback: q => q + '%' }, grid: { color: gd } },
+        y1: { position: 'right', min: 0, suggestedMax: 60, ticks: { color: or, font: { size: 11 }, callback: q => q + 'm' }, grid: { drawOnChartArea: false } }
+      }
+    })
+  }));
+
+  // --- TAB 3: DISTRIBUCIÓN APILADA POR NOCHE (Nuevo) ---
+  CH.push(new Chart('stk', {
+    type: 'bar',
+    data: {
+      labels: R.map(r => dt(r.d)),
+      datasets: [
+        { label: 'Profundo', data: R.map(r => r.dp ?? 0), backgroundColor: dpC, maxBarThickness: 16 },
+        { label: 'Ligero', data: R.map(r => (r.dp != null && r.rem != null) ? Math.max(0, r.dur - r.dp - r.rem) : r.dur), backgroundColor: ltC, maxBarThickness: 16 },
+        { label: 'REM', data: R.map(r => r.rem ?? 0), backgroundColor: rmC, maxBarThickness: 16 },
+        { label: 'Despierto', data: R.map(r => r.aw ?? 0), backgroundColor: or, borderRadius: { topLeft: 3, topRight: 3 }, maxBarThickness: 16 }
+      ]
+    },
+    options: Object.assign({}, base, {
+      scales: {
+        x: ax(null, { stacked: true, grid: { display: false }, ticks: { color: tk, autoSkip: true, maxTicksLimit: 7, maxRotation: 0, font: { size: 11 } } }),
+        y: ax(null, { stacked: true, min: 0, ticks: { stepSize: 120, color: tk, font: { size: 11 }, callback: q => Math.round(q / 60) + ' h' } })
+      }
+    })
+  }));
+}
+
+// Controles de rango, presets, meta y pestañas
+const fs = document.getElementById('fs');
+const ts = document.getElementById('ts');
+let raf = 0;
+
+function setR(a, b){
+  const last = N[N.length - 1][0];
+  fs.max = ts.max = last;
+  FROM = Math.max(1, Math.min(a, b - SP));
+  TO = Math.min(last, Math.max(b, FROM + SP));
+  fs.value = FROM;
+  ts.value = TO;
+  document.getElementById('fl').textContent = dt(FROM);
+  document.getElementById('tl').textContent = dt(TO);
+  document.getElementById('rgl').textContent =
+    (TO - FROM + 1) + ' noches. Todos los gráficos usan solo este rango (mínimo 14 noches).' +
+    (FROM < 13 ? ' Antes del 13 oct aún no trabajabas entre semana, así que la tendencia se mezcla.' : '');
+
+  const PR = getPresets();
+  document.querySelectorAll('#presetBar button').forEach(x => {
+    const p = PR[x.dataset.p];
+    x.classList.toggle('on', p[0] === FROM && p[1] === TO);
+  });
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(run);
+}
+
+fs.addEventListener('input', () => setR(+fs.value, TO));
+ts.addEventListener('input', () => setR(FROM, +ts.value));
+
+document.querySelectorAll('#presetBar button').forEach(x => {
+  x.addEventListener('click', () => {
+    const p = getPresets()[x.dataset.p];
+    setR(p[0], p[1]);
+  });
+});
+
+document.querySelectorAll('#goalBar button').forEach(x => {
+  x.addEventListener('click', () => {
+    document.querySelectorAll('#goalBar button').forEach(b => b.classList.remove('on'));
+    x.classList.add('on');
+    GOAL = Number(x.dataset.g);
+    run();
+  });
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('on');
+    requestAnimationFrame(() => CH.forEach(c => c.resize()));
+  });
+});
+
+// Sincronización con Google Sheets
+async function syncFromSheets(){
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  dot.className = 'dot';
+  txt.textContent = 'Sincronizando con Google Sheets…';
+  try {
+    const res = await fetch(API_URL, { cache: 'no-store' });
+    const data = await res.json();
+    if (data.N && data.N.length){
+      const map = new Map(N.map(r => [r[0], sanitizeRow(r)]));
+      data.N.forEach(r => {
+        const clean = sanitizeRow(r);
+        map.set(clean[0], clean);
+      });
+      N = Array.from(map.values()).sort((a, b) => a[0] - b[0]);
+      const newLast = N[N.length - 1][0];
+      SEL = newLast;
+      setR(FROM, newLast);
+    }
+    const now = new Date();
+    const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    dot.className = 'dot ok';
+    txt.textContent = 'Sincronizado con Google Sheets · ' + hhmm;
+  } catch (err) {
+    dot.className = 'dot err';
+    txt.textContent = 'Modo local (sin conexión a Sheets)';
+  }
+}
+
+document.getElementById('btnSync').addEventListener('click', syncFromSheets);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', run);
+
+setR(FROM, TO);
+syncFromSheets();
+</script>
 </body>
 </html>
